@@ -1,17 +1,14 @@
 import SwiftUI
 
 public struct ContentView: View {
-    public init() {}
+    @Binding var document: ABCDocument
 
     public var body: some View {
-        Text("Hello, World!")
+        Text(document.text.isEmpty ? "Empty document" : document.text)
             .padding()
     }
 }
 
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
+#Preview {
+    ContentView(document: .constant(ABCDocument()))
 }

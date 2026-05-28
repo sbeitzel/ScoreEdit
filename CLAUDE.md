@@ -27,8 +27,10 @@ After adding or removing source files, or changing `Project.swift` or `Tuist/Pac
 
 Build from the command line (after generating):
 ```bash
-tuist xcodebuild build
+xcodebuild -workspace ScoreEdit.xcworkspace -scheme ScoreEdit build
 ```
+
+Note: `tuist xcodebuild build` does not pass `-workspace` to xcodebuild, so cross-project implicit dependencies (CeolKit sub-frameworks) are not resolved and the link step fails. Use the explicit workspace invocation above.
 
 Run all tests:
 ```bash
