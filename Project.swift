@@ -27,7 +27,14 @@ let project = Project(
                         "LSItemContentTypes": ["com.qbcps.abc-notation"],
                         "CFBundleTypeExtensions": ["abc"],
                         "CFBundleTypeMIMETypes": ["text/vnd.abc"],
-                    ]
+                    ],
+                    [
+                        "CFBundleTypeName": "Plain Text",
+                        "CFBundleTypeRole": "Editor",
+                        "LSHandlerRank": "Alternate",
+                        "LSItemContentTypes": ["public.plain-text"],
+                        "CFBundleTypeExtensions": ["txt"],
+                    ],
                 ],
                 "UTExportedTypeDeclarations": [
                     [
