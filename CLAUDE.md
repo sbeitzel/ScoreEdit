@@ -34,12 +34,7 @@ Note: `tuist xcodebuild build` does not pass `-workspace` to xcodebuild, so cros
 
 Run all tests:
 ```bash
-tuist test
-```
-
-Run a single test target:
-```bash
-tuist test ScoreEditTests
+xcodebuild -workspace ScoreEdit.xcworkspace -scheme ScoreEdit test
 ```
 
 ## Project Structure

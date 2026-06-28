@@ -29,8 +29,8 @@ K:D
 {g}A2 B {g}c{d}c{e}c | {g}dc{G}c {g}B2 f | {g}e2A  {g}dc{G}c | {g}B3 {G}A3 :|]
 [| {gcd}c2d {g}ec{G}c | {g}fd{G}d {gef}e3 | {gcd}c2 d {g}eAe | {g}dc{G}c {g}B3 |
 {gcd}c2d {g}ec{G}c | {g}fd{G}d {gef}e2f |  {g}e2A  {g}dc{G}c | {g}B3 {G}A3 |
-{gcd}c2d {g}ec{G}c | {g}fd{G}d {gef}e3 | {gcd}c2 d {g}eAe | {g}dc{G}c {g}B2 {g}(A |
-A2) B {g}c{d}c{e}c | {g}dc{G}c {g}B2 f | {g}e2A  {g}dc{G}c | {g}B3 {G}A3 |]
+{gcd}c2d {g}ec{G}c | {g}fd{G}d {gef}e3 | {gcd}c2 d {g}eAe | {g}dc{G}c {g}B2 {g}A- |
+A2 B {g}c{d}c{e}c | {g}dc{G}c {g}B2 f | {g}e2A  {g}dc{G}c | {g}B3 {G}A3 |]
 
 X:3
 T:The Radar Racketeer

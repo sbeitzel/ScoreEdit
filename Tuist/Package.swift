@@ -15,14 +15,13 @@ import PackageDescription
 let package = Package(
     name: "ScoreEdit",
     dependencies: [
-        // Add your own dependencies here:
-        // .package(url: "https://github.com/Alamofire/Alamofire", from: "5.0.0"),
-        // You can read more about dependencies here: https://docs.tuist.io/documentation/tuist/dependencies
-        .package(url: "https://github.com/sbeitzel/SVGKit", branch: "macOS"),
-        .package(url: "https://github.com/sbeitzel/CeolKit", branch: "main"),
+        .package(url: "https://github.com/SVGKit/SVGKit", branch: "3.x"),
+        .package(path: "../../CeolKit"),
         // Pin transitive deps to versions that predate enableUpcomingFeature,
         // which Tuist cannot parse in SPM package manifests.
         .package(url: "https://github.com/CocoaLumberjack/CocoaLumberjack.git", .upToNextMinor(from: "3.8.0")),
-        .package(url: "https://github.com/apple/swift-log", .upToNextMinor(from: "1.5.0")),
+        .package(url: "https://github.com/apple/swift-log", from: "1.14.0"),
+        // Transitive dep from CeolKit's test target — must be declared so Tuist can resolve the graph.
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.17.0"),
     ]
 )

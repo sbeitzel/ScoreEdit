@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ScoreEdit icon component: staff lines
+  5 horizontal lines, evenly spaced, on a 1000x1000 canvas.
+  Spacing and vertical centering match clef.svg and cursor.svg so the
+  three files can be layered directly without further adjustment.
+  Line spacing: 60 units. Lines span y = 370 to y = 610 (centered on 490,
+  the optical center used by the clef art).
+-->
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Staff lines</title>
+  <g stroke="#04342C" stroke-width="14" stroke-linecap="round">
+    <line x1="60" y1="370" x2="940" y2="370"/>
+    <line x1="60" y1="430" x2="940" y2="430"/>
+    <line x1="60" y1="490" x2="940" y2="490"/>
+    <line x1="60" y1="550" x2="940" y2="550"/>
+    <line x1="60" y1="610" x2="940" y2="610"/>
+  </g>
+</svg>
