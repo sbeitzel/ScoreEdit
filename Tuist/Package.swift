@@ -17,6 +17,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/SVGKit/SVGKit", branch: "3.x"),
         .package(path: "../../CeolKit"),
+        // TODO: evaluate this for truth, as some time has passed since I started this project
         // Pin transitive deps to versions that predate enableUpcomingFeature,
         // which Tuist cannot parse in SPM package manifests.
         .package(url: "https://github.com/CocoaLumberjack/CocoaLumberjack.git", .upToNextMinor(from: "3.8.0")),

@@ -1,0 +1,153 @@
+import AppKit
+import Foundation
+
+enum IncludeAccessError: Error, LocalizedError {
+    case notYetGranted(URL)
+
+    var errorDescription: String? {
+        switch self {
+        case .notYetGranted(let url):
+            return "ScoreEdit needs permission to read \"\(url.lastPathComponent)\""
+        }
+    }
+}
+
+protocol SecurityScopedBookmarkStoring: Sendable {
+    func bookmark(for url: URL) -> Data?
+    func setBookmark(_ data: Data, for url: URL)
+}
+
+final class SecurityScopedBookmarkStore: SecurityScopedBookmarkStoring, @unchecked Sendable {
+    private let storeURL: URL
+    private let lock = NSLock()
+    private var cache: [String: Data]
+
+    init(storeURL: URL? = nil) {
+        let url = storeURL ?? Self.defaultStoreURL()
+        self.storeURL = url
+        self.cache = Self.load(from: url)
+    }
+
+    func bookmark(for url: URL) -> Data? {
+        lock.lock()
+        defer { lock.unlock() }
+        return cache[url.path]
+    }
+
+    func setBookmark(_ data: Data, for url: URL) {
+        lock.lock()
+        cache[url.path] = data
+        let snapshot = cache
+        lock.unlock()
+        Self.save(snapshot, to: storeURL)
+    }
+
+    private static func defaultStoreURL() -> URL {
+        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let dir = support.appendingPathComponent("ScoreEdit", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir.appendingPathComponent("file-bookmarks.plist")
+    }
+
+    private static func load(from url: URL) -> [String: Data] {
+        guard let data = try? Data(contentsOf: url),
+              let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Data]
+        else { return [:] }
+        return plist
+    }
+
+    private static func save(_ dict: [String: Data], to url: URL) {
+        guard let data = try? PropertyListSerialization.data(fromPropertyList: dict, format: .binary, options: 0) else { return }
+        try? data.write(to: url, options: .atomic)
+    }
+}
+
+/// Supplies CeolKit's `fileResolver` for `I:abc-include` targets, working within
+/// App Sandbox by consulting/minting security-scoped bookmarks. Reading (`resolve`)
+/// runs off the main thread from the render pipeline; granting access (`grantAccess`)
+/// must run on the main thread because it presents `NSOpenPanel`.
+final class IncludeFileAccessResolver: @unchecked Sendable {
+    private let bookmarkStore: SecurityScopedBookmarkStoring
+    private let lock = NSLock()
+    private var pending: Set<URL> = []
+
+    init(bookmarkStore: SecurityScopedBookmarkStoring = SecurityScopedBookmarkStore()) {
+        self.bookmarkStore = bookmarkStore
+    }
+
+    var pendingURLs: Set<URL> {
+        lock.lock()
+        defer { lock.unlock() }
+        return pending
+    }
+
+    func resolve(_ url: URL) throws -> Data {
+        let standardized = url.standardizedFileURL
+
+        if let bookmark = bookmarkStore.bookmark(for: standardized) {
+            var isStale = false
+            if let resolved = try? URL(
+                resolvingBookmarkData: bookmark,
+                options: [.withSecurityScope],
+                relativeTo: nil,
+                bookmarkDataIsStale: &isStale
+            ) {
+                let didStart = resolved.startAccessingSecurityScopedResource()
+                defer { if didStart { resolved.stopAccessingSecurityScopedResource() } }
+                if let data = try? Data(contentsOf: resolved) {
+                    if isStale, let refreshed = try? resolved.bookmarkData(options: .withSecurityScope) {
+                        bookmarkStore.setBookmark(refreshed, for: standardized)
+                    }
+                    clearPending(standardized)
+                    return data
+                }
+            }
+        }
+
+        // Already-permitted files (e.g. within a directory the user granted via
+        // NSOpenPanel for the main document) can be read directly without a bookmark.
+        if let data = try? Data(contentsOf: standardized) {
+            clearPending(standardized)
+            return data
+        }
+
+        markPending(standardized)
+        throw IncludeAccessError.notYetGranted(standardized)
+    }
+
+    @discardableResult
+    @MainActor
+    func grantAccess(to url: URL) -> Bool {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = url.deletingLastPathComponent()
+        panel.nameFieldStringValue = url.lastPathComponent
+        panel.message = "Grant access to \u{201C}\(url.lastPathComponent)\u{201D} so ScoreEdit can read this include file."
+
+        guard panel.runModal() == .OK, let chosen = panel.url,
+              let bookmark = try? chosen.bookmarkData(
+                options: .withSecurityScope,
+                includingResourceValuesForKeys: nil,
+                relativeTo: nil
+              )
+        else { return false }
+
+        bookmarkStore.setBookmark(bookmark, for: url.standardizedFileURL)
+        clearPending(url.standardizedFileURL)
+        return true
+    }
+
+    private func markPending(_ url: URL) {
+        lock.lock()
+        pending.insert(url)
+        lock.unlock()
+    }
+
+    private func clearPending(_ url: URL) {
+        lock.lock()
+        pending.remove(url)
+        lock.unlock()
+    }
+}

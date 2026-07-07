@@ -7,36 +7,43 @@ import Logging
 struct ScorePreviewView: View {
     let abcText: String
     let baseDir: URL?
+    let includeAccess: IncludeFileAccessResolver
     let logger: Logger = Logger(label: "ScorePreviewView")
 
     @State private var svgPages: [String] = []
     @State private var renderError: String?
     @State private var renderTask: Task<Void, Never>?
+    @State private var pendingIncludeURLs: Set<URL> = []
 
     var body: some View {
-        Group {
-            if let renderError {
-                ScrollView {
-                    Text(renderError)
-                        .foregroundStyle(.red)
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            } else if svgPages.isEmpty {
-                Text("Score preview")
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                ScrollView([.horizontal, .vertical]) {
-                    LazyVStack(spacing: 12) {
-                        ForEach(svgPages.indices, id: \.self) { i in
-                            SVGPageView(svgString: svgPages[i])
-                                .aspectRatio(svgAspectRatio(svgPages[i]) ?? (612.0 / 792.0), contentMode: .fit)
-                                .frame(maxWidth: .infinity)
-                                .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 1)
-                        }
+        VStack(spacing: 0) {
+            if !pendingIncludeURLs.isEmpty {
+                includeAccessBanner
+            }
+            Group {
+                if let renderError {
+                    ScrollView {
+                        Text(renderError)
+                            .foregroundStyle(.red)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .padding()
+                } else if svgPages.isEmpty {
+                    Text("Score preview")
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ScrollView([.horizontal, .vertical]) {
+                        LazyVStack(spacing: 12) {
+                            ForEach(svgPages.indices, id: \.self) { i in
+                                SVGPageView(svgString: svgPages[i])
+                                    .aspectRatio(svgAspectRatio(svgPages[i]) ?? (612.0 / 792.0), contentMode: .fit)
+                                    .frame(maxWidth: .infinity)
+                                    .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 1)
+                            }
+                        }
+                        .padding()
+                    }
                 }
             }
         }
@@ -50,9 +57,29 @@ struct ScorePreviewView: View {
         }
     }
 
+    private var includeAccessBanner: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(Array(pendingIncludeURLs).sorted { $0.path < $1.path }, id: \.self) { url in
+                HStack {
+                    Text("Cannot access \u{201C}\(url.lastPathComponent)\u{201D}")
+                        .foregroundStyle(.orange)
+                    Spacer()
+                    Button("Grant Access…") {
+                        if includeAccess.grantAccess(to: url) {
+                            scheduleRender()
+                        }
+                    }
+                }
+            }
+        }
+        .padding(8)
+        .background(Color.orange.opacity(0.15))
+    }
+
     private func scheduleRender() {
         renderTask?.cancel()
         let workingDirectory = baseDir
+        let resolver = includeAccess
         renderTask = Task {
             try? await Task.sleep(for: .milliseconds(300))
             guard !Task.isCancelled else {
@@ -62,7 +89,7 @@ struct ScorePreviewView: View {
             let text = abcText
             logger.trace("launching renderABC, text length: \(text.count)")
             let (pages, err) = await Task.detached(priority: .userInitiated) {
-                renderABC(text, baseDir: workingDirectory)
+                renderABC(text, baseDir: workingDirectory, fileResolver: resolver.resolve)
             }.value
             guard !Task.isCancelled else {
                 logger.trace("render task cancelled after renderABC returned")
@@ -71,6 +98,7 @@ struct ScorePreviewView: View {
             logger.info("renderABC finished — pages: \(pages.count), error: \(err ?? "none")")
             svgPages = pages
             renderError = err
+            pendingIncludeURLs = resolver.pendingURLs
         }
     }
 
@@ -81,7 +109,11 @@ struct ScorePreviewView: View {
     }
 }
 
-private func renderABC(_ text: String, baseDir: URL? = nil) -> (pages: [String], error: String?) {
+private func renderABC(
+    _ text: String,
+    baseDir: URL? = nil,
+    fileResolver: CeolKitParser.FileResolver? = nil
+) -> (pages: [String], error: String?) {
     let log: Logger = Logger(label: "renderABC")
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else {
@@ -90,7 +122,7 @@ private func renderABC(_ text: String, baseDir: URL? = nil) -> (pages: [String],
     }
 
     log.trace("parsing \(trimmed.count) chars")
-    let parser = CeolKitParser(for: baseDir)
+    let parser = CeolKitParser(for: baseDir, fileResolver: fileResolver)
     let result = parser.parse(trimmed, options: .default)
 
     log.trace("parse complete — tunes: \(result.score.tunes.count), diagnostics: \(result.diagnostics.count)")
@@ -150,5 +182,5 @@ private func renderABC(_ text: String, baseDir: URL? = nil) -> (pages: [String],
         [| a/ | {fg}f2 {g}f<a {ef}e2 {A}e>f | {Gdc}d2 {g}e>d {g}B<d{g}B<{d}A | {g}B<d{e}A>d {g}B<{d}A{g}B<d | {g}f>e{A}e>f {gef}e2 {ag}a2 |
         {fg}f2 {g}f<a {ef}e2 {A}e>f | {Gdc}d2 {g}e>d {g}B<d{g}B<{d}A | {Gdc}d2 {e}A>d {g}B<{d}A{g}B<d | {g}A<{d}A{g}f>e {Gdc}d2 z |]
         """
-    ScorePreviewView(abcText: kalabakan, baseDir: nil)
+    ScorePreviewView(abcText: kalabakan, baseDir: nil, includeAccess: IncludeFileAccessResolver())
 }

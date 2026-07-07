@@ -122,7 +122,8 @@ let project = Project(
             buildableFolders: [
                 "ScoreEdit/Tests"
             ],
-            dependencies: [.target(name: "ScoreEdit")]
+            dependencies: [.target(name: "ScoreEdit")],
+            settings: .settings(base: testSettings)
         ),
     ]
 )
