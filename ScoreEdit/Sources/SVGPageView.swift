@@ -28,3 +28,16 @@ struct SVGPageView: NSViewRepresentable {
         return image ?? SVGKImage()
     }
 }
+
+extension SVGPageView {
+    nonisolated static func svgSize(_ svg: String) -> (width: Double, height: Double)? {
+        guard let m = try? /width="([\d.]+)" height="([\d.]+)"/.firstMatch(in: svg),
+              let w = Double(m.1), let h = Double(m.2) else { return nil }
+        return (w, h)
+    }
+
+    nonisolated static func aspectRatio(_ svg: String) -> Double? {
+        guard let size = svgSize(svg), size.height > 0 else { return nil }
+        return size.width / size.height
+    }
+}

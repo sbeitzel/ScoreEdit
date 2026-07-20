@@ -8,6 +8,11 @@ struct ScorePreviewView: View {
     let abcText: String
     let baseDir: URL?
     let includeAccess: IncludeFileAccessResolver
+    @Binding var scrollAnchors: [(abcLine: Int, svgY: Double)]
+    var scrollProportion: Double
+    var onScrollProportionChanged: (Double) -> Void
+    @Binding var contentHeight: Double
+    @Binding var visibleHeight: Double
     let logger: Logger = Logger(label: "ScorePreviewView")
 
     @State private var svgPages: [String] = []
@@ -33,17 +38,13 @@ struct ScorePreviewView: View {
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    ScrollView([.horizontal, .vertical]) {
-                        LazyVStack(spacing: 12) {
-                            ForEach(svgPages.indices, id: \.self) { i in
-                                SVGPageView(svgString: svgPages[i])
-                                    .aspectRatio(svgAspectRatio(svgPages[i]) ?? (612.0 / 792.0), contentMode: .fit)
-                                    .frame(maxWidth: .infinity)
-                                    .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 1)
-                            }
-                        }
-                        .padding()
-                    }
+                    ScrollablePreviewHost(
+                        pages: svgPages,
+                        scrollProportion: scrollProportion,
+                        onScrollProportionChanged: onScrollProportionChanged,
+                        contentHeight: $contentHeight,
+                        visibleHeight: $visibleHeight
+                    )
                 }
             }
         }
@@ -97,16 +98,45 @@ struct ScorePreviewView: View {
             }
             logger.info("renderABC finished — pages: \(pages.count), error: \(err ?? "none")")
             svgPages = pages
+            scrollAnchors = Self.scrollAnchors(forPages: pages)
             renderError = err
             pendingIncludeURLs = resolver.pendingURLs
         }
     }
 
-    private func svgAspectRatio(_ svg: String) -> Double? {
-        guard let m = try? /width="([\d.]+)" height="([\d.]+)"/.firstMatch(in: svg),
-              let w = Double(m.1), let h = Double(m.2), h > 0 else { return nil }
-        return w / h
+    /// Extracts the `ceolkit-meta` anchor comment (CeolKit#25) from each page and
+    /// builds a document-absolute anchor table by offsetting each page's anchors
+    /// by the accumulated height of all preceding pages.
+    nonisolated static func scrollAnchors(forPages pages: [String]) -> [(abcLine: Int, svgY: Double)] {
+        var result: [(abcLine: Int, svgY: Double)] = []
+        var offset: Double = 0
+        for svg in pages {
+            for anchor in pageAnchors(svg) {
+                result.append((abcLine: anchor.abcLine, svgY: anchor.y + offset))
+            }
+            offset += SVGPageView.svgSize(svg)?.height ?? PageSize.letter.height
+        }
+        return result.sorted { $0.abcLine < $1.abcLine }
     }
+
+    private nonisolated static func pageAnchors(_ svg: String) -> [PageAnchor] {
+        guard let match = try? /<!--\s*ceolkit-meta:\s*(\{.*?\})\s*-->/.firstMatch(in: svg),
+              let data = String(match.1).data(using: .utf8),
+              let meta = try? JSONDecoder().decode(PageMeta.self, from: data) else {
+            return []
+        }
+        return meta.anchors
+    }
+}
+
+private struct PageMeta: Decodable {
+    let page: Int
+    let anchors: [PageAnchor]
+}
+
+private struct PageAnchor: Decodable {
+    let abcLine: Int
+    let y: Double
 }
 
 private func renderABC(
@@ -182,5 +212,14 @@ private func renderABC(
         [| a/ | {fg}f2 {g}f<a {ef}e2 {A}e>f | {Gdc}d2 {g}e>d {g}B<d{g}B<{d}A | {g}B<d{e}A>d {g}B<{d}A{g}B<d | {g}f>e{A}e>f {gef}e2 {ag}a2 |
         {fg}f2 {g}f<a {ef}e2 {A}e>f | {Gdc}d2 {g}e>d {g}B<d{g}B<{d}A | {Gdc}d2 {e}A>d {g}B<{d}A{g}B<d | {g}A<{d}A{g}f>e {Gdc}d2 z |]
         """
-    ScorePreviewView(abcText: kalabakan, baseDir: nil, includeAccess: IncludeFileAccessResolver())
+    ScorePreviewView(
+        abcText: kalabakan,
+        baseDir: nil,
+        includeAccess: IncludeFileAccessResolver(),
+        scrollAnchors: .constant([]),
+        scrollProportion: 0,
+        onScrollProportionChanged: { _ in },
+        contentHeight: .constant(0),
+        visibleHeight: .constant(0)
+    )
 }
