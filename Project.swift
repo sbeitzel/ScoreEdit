@@ -69,6 +69,7 @@ let project = Project(
                 "CFBundleShortVersionString": "1.0",
                 "CFBundleVersion": "1",
                 "NSHighResolutionCapable": true,
+                "NSHumanReadableCopyright": "Copyright © 2026 The QBCPS Trust",
                 "NSPrincipalClass": "NSApplication",
                 "CFBundleDocumentTypes": [
                     [
@@ -98,6 +99,11 @@ let project = Project(
                         ],
                     ]
                 ],
+                "SUEnableInstallerLauncherService": "YES",
+                "SUFeedURL": "https://www.coprosperitysphere.com/apps/ScoreEdit/appcast.xml",
+                "SUPublicEDKey": "Khw/XeZGHen0qt8c6BIzZwTvZ78u+Wb+OJuR5LvhryQ=",
+                "SURequireSignedFeed": true,
+                "SUVerifyUpdateBeforeExtraction": true,
             ]),
             buildableFolders: [
                 "ScoreEdit/Sources",
@@ -108,6 +114,7 @@ let project = Project(
                 .external(name: "CeolKitParser"),
                 .external(name: "CeolKitSVGRenderer"),
                 .external(name: "Logging"),
+                .external(name: "Sparkle"),
                 .external(name: "SVGKit"),
                 .external(name: "SVGKitSwift"),
             ],
