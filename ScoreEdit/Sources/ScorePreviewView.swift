@@ -34,7 +34,7 @@ struct ScorePreviewView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 } else if svgPages.isEmpty {
-                    Text("Score preview")
+                    Text(.klabelScorePreview)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -62,10 +62,10 @@ struct ScorePreviewView: View {
         VStack(alignment: .leading, spacing: 4) {
             ForEach(Array(pendingIncludeURLs).sorted { $0.path < $1.path }, id: \.self) { url in
                 HStack {
-                    Text("Cannot access \u{201C}\(url.lastPathComponent)\u{201D}")
+                    Text(.kerrFileAccess(name: url.lastPathComponent))
                         .foregroundStyle(.orange)
                     Spacer()
-                    Button("Grant Access…") {
+                    Button(.kbuttonGrantAccess) {
                         if includeAccess.grantAccess(to: url) {
                             scheduleRender()
                         }
