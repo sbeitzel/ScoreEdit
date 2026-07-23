@@ -1,2 +1,6 @@
 [tools]
-tuist = "4.195.9"
+tuist = "4.202.6"
+
+[tasks.export_app_icon]
+description = "Export the current app icon to the local website assets directory"
+run = "scripts/export-app-icon.sh"

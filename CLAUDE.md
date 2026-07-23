@@ -49,6 +49,6 @@ xcodebuild -workspace ScoreEdit.xcworkspace -scheme ScoreEdit test
 
 ## Architecture
 
-The app is a macOS-only SwiftUI application. At the time of this writing it is freshly scaffolded: `ScoreEditApp` is the `@main` entry point, and `ContentView` is the root view. There are no third-party dependencies yet.
+The app is a macOS-only SwiftUI application. `ScoreEditApp` is the `@main` entry point, and `ContentView` is the root view.
 
 Tests use the Swift Testing framework (not XCTest).
