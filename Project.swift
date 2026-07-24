@@ -128,7 +128,7 @@ let project = Project(
                     ]
                 ],
                 "SUEnableInstallerLauncherService": "YES",
-                "SUFeedURL": "https://www.coprosperitysphere.com/apps/ScoreEdit/appcast.xml",
+                "SUFeedURL": "https://www.coprosperitysphere.com/dist/ScoreEdit/appcast.xml",
                 "SUPublicEDKey": "Khw/XeZGHen0qt8c6BIzZwTvZ78u+Wb+OJuR5LvhryQ=",
                 "SURequireSignedFeed": true,
                 "SUVerifyUpdateBeforeExtraction": true,
