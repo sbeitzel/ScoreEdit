@@ -80,8 +80,8 @@ cat > "$SVG" <<'SVG'
     <line x1="180" y1="96"  x2="420" y2="96"/>
   </g>
 
-  <!-- Title -->
-  <text x="300" y="86" text-anchor="middle"
+  <!-- Title (baseline sits one staff line (8px) lower than the top line) -->
+  <text x="300" y="94" text-anchor="middle"
         font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
         font-size="34" font-weight="600" fill="#2b2b2e">ScoreEdit</text>
 

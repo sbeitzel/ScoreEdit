@@ -16,3 +16,7 @@ run = "scripts/build-release.sh"
 [tasks.make_dmg_background]
 description = "Regenerate the DMG window background art (dmg/background.{svg,png,tiff})"
 run = "scripts/make-dmg-background.sh"
+
+[tasks.create_dmg]
+description = "Assemble, sign, notarize, and staple the distributable .dmg (--skip-notarize to skip)"
+run = "scripts/create-dmg.sh"
