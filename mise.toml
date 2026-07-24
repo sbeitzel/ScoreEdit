@@ -12,3 +12,7 @@ run = "scripts/bump-version.sh"
 [tasks.build_release]
 description = "Build a Developer ID-signed Release build of the app into dist/build/export"
 run = "scripts/build-release.sh"
+
+[tasks.make_dmg_background]
+description = "Regenerate the DMG window background art (dmg/background.{svg,png,tiff})"
+run = "scripts/make-dmg-background.sh"
