@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+      Export options for `xcodebuild -exportArchive` when producing the
+      distributable (non-App-Store) build of ScoreEdit. See scripts/build-release.sh.
+
+      method: developer-id
+          Re-signs the app (and its embedded Sparkle framework and XPC services)
+          with the "Developer ID Application" certificate, producing a bundle that
+          Gatekeeper accepts and that is ready for notarization.
+    -->
+    <key>method</key>
+    <string>developer-id</string>
+
+    <key>teamID</key>
+    <string>D3DPVGA48J</string>
+
+    <!-- Let Xcode pick the Developer ID Application identity for the team above. -->
+    <key>signingStyle</key>
+    <string>automatic</string>
+
+    <!--
+      Do not notarize during export; notarization + stapling is a separate,
+      scripted step (issues #8 / #9).
+    -->
+</dict>
+</plist>

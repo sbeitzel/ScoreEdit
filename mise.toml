@@ -4,3 +4,11 @@ tuist = "4.202.6"
 [tasks.export_app_icon]
 description = "Export the current app icon to the local website assets directory"
 run = "scripts/export-app-icon.sh"
+
+[tasks.bump_version]
+description = "Bump the app version in VERSION.json (major|minor|patch|--set X.Y.Z|--build-only)"
+run = "scripts/bump-version.sh"
+
+[tasks.build_release]
+description = "Build a Developer ID-signed Release build of the app into dist/build/export"
+run = "scripts/build-release.sh"

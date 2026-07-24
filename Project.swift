@@ -1,10 +1,38 @@
+import Foundation
 import ProjectDescription
+
+// MARK: - Version (single source of truth: VERSION.json, see issue #11)
+
+struct AppVersion: Decodable {
+    let marketingVersion: String
+    let buildNumber: Int
+}
+
+/// Reads VERSION.json (sibling of this manifest) so the app version lives in
+/// exactly one checked-in place. `marketingVersion` becomes CFBundleShortVersionString
+/// and `buildNumber` becomes CFBundleVersion. Fails generation loudly if the file
+/// is missing or malformed, rather than silently shipping a stale/wrong version.
+func loadAppVersion() -> AppVersion {
+    let url = URL(fileURLWithPath: #filePath)
+        .deletingLastPathComponent()
+        .appendingPathComponent("VERSION.json")
+    guard let data = try? Data(contentsOf: url) else {
+        fatalError("VERSION.json not found at \(url.path). See issue #11.")
+    }
+    do {
+        return try JSONDecoder().decode(AppVersion.self, from: data)
+    } catch {
+        fatalError("VERSION.json at \(url.path) is malformed: \(error)")
+    }
+}
+
+let appVersion = loadAppVersion()
 
 let baseSettings: SettingsDictionary = [
     "BUILD_YEAR": "2026",
     "DEVELOPMENT_TEAM": "D3DPVGA48J",
-    "CURRENT_PROJECT_VERSION": "1",
-    "MARKETING_VERSION": "1.0",
+    "CURRENT_PROJECT_VERSION": "\(appVersion.buildNumber)",
+    "MARKETING_VERSION": "\(appVersion.marketingVersion)",
     "CODE_SIGN_IDENTITY": "Apple Development",
     "CODE_SIGNING_ALLOWED": "YES",
     "SWIFT_VERSION": "6.2",
@@ -21,7 +49,7 @@ let appSettings: SettingsDictionary = baseSettings.merging([
     "ENABLE_INCOMING_NETWORK_CONNECTIONS": "NO",
     "ENABLE_OUTGOING_NETWORK_CONNECTIONS": "YES",
     "ENABLE_USER_SELECTED_FILES": "readwrite",
-    "REGISTER_APP_GROUPS": "YES",
+    "REGISTER_APP_GROUPS": "NO",
     "MACOSX_DEPLOYMENT_TARGET": "26.2",
     "ASSETCATALOG_COMPILER_APPICON_NAME": "ScoreEdit",
     "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
@@ -66,8 +94,8 @@ let project = Project(
                 "CFBundleInfoDictionaryVersion": "6.0",
                 "CFBundleName": "$(PRODUCT_NAME)",
                 "CFBundlePackageType": "$(PRODUCT_BUNDLE_PACKAGE_TYPE)",
-                "CFBundleShortVersionString": "1.0",
-                "CFBundleVersion": "1",
+                "CFBundleShortVersionString": "$(MARKETING_VERSION)",
+                "CFBundleVersion": "$(CURRENT_PROJECT_VERSION)",
                 "NSHighResolutionCapable": true,
                 "NSHumanReadableCopyright": "Copyright © 2026 The QBCPS Trust",
                 "NSPrincipalClass": "NSApplication",

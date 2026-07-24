@@ -71,3 +71,6 @@ Tuist/.build
 
 ### Build/distribution secrets (see issue #10) ###
 SECRETS.json
+
+### Release build artifacts (see issues #8 / #9) ###
+dist/build/
