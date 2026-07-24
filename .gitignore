@@ -74,3 +74,6 @@ SECRETS.json
 
 ### Release build artifacts (see issues #8 / #9) ###
 dist/build/
+
+### Sparkle artifacts
+dist/updates/

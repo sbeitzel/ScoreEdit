@@ -87,6 +87,14 @@ MARKETING_VERSION="$(plutil -extract marketingVersion raw -o - "$VERSION_FILE")"
   || die "could not read marketingVersion from VERSION.json."
 FINAL_DMG="$BUILD_DIR/ScoreEdit-$MARKETING_VERSION.dmg"
 
+# Guard against a stale export: the app baked into the DMG must match the
+# version we are naming it after. (build-release.sh regenerates from VERSION.json;
+# if the export predates a version bump they can silently disagree.)
+APP_VERSION="$(plutil -extract CFBundleShortVersionString raw -o - "$APP/Contents/Info.plist" 2>/dev/null)" \
+  || die "could not read CFBundleShortVersionString from the exported app."
+[ "$APP_VERSION" = "$MARKETING_VERSION" ] \
+  || die "version mismatch: exported app is $APP_VERSION but VERSION.json is $MARKETING_VERSION. Re-run scripts/build-release.sh (mise run build_release) to rebuild the app."
+
 # Derive the signing identity from the app so the .dmg is signed with the
 # exact same Developer ID Application certificate.
 SIGN_ID="$(codesign -dvv "$APP" 2>&1 | sed -n 's/^Authority=\(Developer ID Application.*\)$/\1/p' | head -1)"

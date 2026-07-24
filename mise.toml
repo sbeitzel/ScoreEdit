@@ -20,3 +20,7 @@ run = "scripts/make-dmg-background.sh"
 [tasks.create_dmg]
 description = "Assemble, sign, notarize, and staple the distributable .dmg (--skip-notarize to skip)"
 run = "scripts/create-dmg.sh"
+
+[tasks.make_appcast]
+description = "Generate/refresh the Sparkle appcast + delta updates for the notarized .dmg"
+run = "scripts/make-appcast.sh"
