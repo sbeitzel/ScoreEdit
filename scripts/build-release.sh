@@ -53,6 +53,17 @@ BUILD_NUMBER="$(plutil -extract buildNumber raw -o - "$VERSION_FILE")" \
 echo "==> Building ScoreEdit $MARKETING_VERSION (build $BUILD_NUMBER)"
 
 # --- 1. Regenerate the Xcode project ---------------------------------------
+# Project.swift reads VERSION.json while the manifest is being evaluated, but
+# Tuist caches evaluated manifests keyed on the manifest sources alone —
+# VERSION.json is not part of that key. A version-only bump therefore leaves the
+# cache valid and `tuist generate` reuses the previous version, silently
+# producing a DMG named for the new version around an app still carrying the old
+# CFBundleVersion (which Sparkle would then never offer as an update). Dropping
+# the manifest cache first forces re-evaluation. The version is verified against
+# the exported app below.
+echo "==> Clearing cached manifests (so VERSION.json is re-read)"
+( cd "$REPO_ROOT" && tuist clean manifests )
+
 echo "==> Generating Xcode project (tuist generate)"
 ( cd "$REPO_ROOT" && tuist generate --no-open )
 
@@ -81,6 +92,23 @@ xcodebuild -exportArchive \
 
 APP="$EXPORT_DIR/ScoreEdit.app"
 [ -d "$APP" ] || die "exported app not found at $APP"
+
+# --- 4. Verify the exported app carries the version we set out to build -----
+# Everything downstream (the DMG filename, the appcast entry) is named from
+# VERSION.json, while the app's real version comes through the generated project.
+# If those ever diverge the mismatch is invisible until users fail to get the
+# update, so fail the build here instead.
+APP_PLIST="$APP/Contents/Info.plist"
+[ -f "$APP_PLIST" ] || die "exported app has no Info.plist at $APP_PLIST"
+BUILT_MARKETING="$(plutil -extract CFBundleShortVersionString raw -o - "$APP_PLIST")" \
+  || die "could not read CFBundleShortVersionString from the exported app."
+BUILT_BUILD="$(plutil -extract CFBundleVersion raw -o - "$APP_PLIST")" \
+  || die "could not read CFBundleVersion from the exported app."
+if [ "$BUILT_MARKETING" != "$MARKETING_VERSION" ] || [ "$BUILT_BUILD" != "$BUILD_NUMBER" ]; then
+  die "exported app is $BUILT_MARKETING (build $BUILT_BUILD) but VERSION.json says $MARKETING_VERSION (build $BUILD_NUMBER).
+     The generated project is stale. Run 'tuist clean manifests' and try again."
+fi
+echo "==> Verified exported app is $BUILT_MARKETING (build $BUILT_BUILD)"
 
 echo
 echo "==> Release build complete:"

@@ -19,8 +19,10 @@
 #
 #   mise run bump_version -- patch
 #
-# After bumping, run `tuist generate` (or scripts/build-release.sh, which does
-# it for you) for the new version to take effect in the Xcode project.
+# After bumping, run `tuist clean manifests && tuist generate` (or
+# scripts/build-release.sh, which does it for you) for the new version to take
+# effect in the Xcode project. The clean is required: Tuist caches evaluated
+# manifests keyed on the manifest sources, and VERSION.json is not one of them.
 
 set -euo pipefail
 
@@ -99,4 +101,8 @@ echo "VERSION.json updated:"
 echo "  marketingVersion: $CUR_MARKETING -> $NEW_MARKETING"
 echo "  buildNumber:      $CUR_BUILD -> $NEW_BUILD"
 echo
-echo "Run 'tuist generate' (or scripts/build-release.sh) to apply."
+# `tuist generate` alone is NOT enough: Tuist caches evaluated manifests keyed on
+# the manifest sources, and VERSION.json is not one of them, so the bump would be
+# ignored and the old version generated again. build-release.sh does the clean
+# for you and verifies the exported app's version afterwards.
+echo "Run 'tuist clean manifests && tuist generate' (or scripts/build-release.sh) to apply."

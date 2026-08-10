@@ -23,6 +23,14 @@ tuist generate
 
 After adding or removing source files, or changing `Project.swift` or `Tuist/Package.swift`, regenerate the project before building.
 
+After changing `VERSION.json`, `tuist generate` alone is **not** enough — clear the manifest cache first:
+
+```bash
+tuist clean manifests && tuist generate
+```
+
+`Project.swift` reads `VERSION.json` while the manifest is evaluated, but Tuist keys its manifest cache on the manifest sources only. Without the clean, the bump is silently ignored and the previous version is generated again. `scripts/build-release.sh` handles this and verifies the exported app's version afterwards.
+
 ## Build & Test
 
 Build from the command line (after generating):

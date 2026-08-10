@@ -8,45 +8,63 @@ import Testing
 
 struct FontRegistrationTests {
 
-    /// SVGKit matches `font-family` against `NSFontManager`'s registered families,
-    /// so this is the exact lookup the score preview depends on.
+    /// The ABC the preview-path tests render: a title and a footer (text) over a
+    /// bar of notes (music glyphs), so both font families are exercised.
+    private static let abc = """
+        %%titleformat T0
+        %%footer "Footer Check"
+        X:1
+        T:Font Check
+        M:4/4
+        L:1/4
+        K:C
+        CDEF|
+        """
+
+    /// SVGKit resolves `font-family` through `NSFontManager`, so this is the lookup
+    /// any `TextRendering/fontFace` output would depend on. The preview no longer
+    /// takes that path (see `previewOutputCarriesNoFontDependency`), but the app
+    /// still registers at startup, so keep the registration itself honest.
     @Test func libertinusSerifIsAvailableAfterRegistration() {
         CeolKitFonts.register()
         #expect(NSFontManager.shared.availableFontFamilies.contains("Libertinus Serif"))
     }
 
-    @Test func renderedTitleTextResolvesToLibertinusSerif() throws {
-        CeolKitFonts.register()
+    /// As of CeolKit 1.2.1 `SVGRenderConfig.textRendering` defaults to `.outlines`,
+    /// which writes glyph geometry into the document instead of emitting `<text>`
+    /// that a rasterizer has to match against an installed family. The preview uses
+    /// that default, so its output must not depend on the host's font environment —
+    /// a `<text>` element reappearing here means it silently does again.
+    @Test func previewOutputCarriesNoFontDependency() throws {
+        let svg = try Self.renderPreviewPage()
+        #expect(!svg.contains("<text"))
+        #expect(!svg.contains("@font-face"))
+    }
 
-        let abc = "%%titleformat T0\n%%footer \"Footer Check\"\nX:1\nT:Font Check\nM:4/4\nL:1/4\nK:C\nCDEF|\n"
-        let result = CeolKitParser().parse(abc, options: .default)
-        let svg = try #require(try SVGRenderer().render(result.score).first)
-        let source = SVGKSourceString.source(fromContentsOf: svg)
-        let image = try #require(SVGKImage(source: source))
+    /// The guarantee the preview actually rests on: SVGKit turns a rendered page
+    /// into a layer tree with drawn geometry in it. Under `.outlines` every
+    /// notehead, clef, and letterform arrives as a path, so an empty result here
+    /// is the "staff lines and stems but nothing else" failure CeolKit's default
+    /// exists to prevent.
+    @Test func renderedPageRasterizesToDrawnGeometry() throws {
+        let svg = try Self.renderPreviewPage()
+        let image = try #require(SVGKImage(source: SVGKSourceString.source(fromContentsOf: svg)))
         let layerTree = try #require(image.caLayerTree)
-        let families = Self.textLayers(in: layerTree).flatMap(Self.fontFamilies(of:))
-        #expect(families.contains("Libertinus Serif"))
+        #expect(!Self.drawnPaths(in: layerTree).isEmpty)
     }
 
-    private static func textLayers(in layer: CALayer) -> [CATextLayer] {
-        var found: [CATextLayer] = []
-        if let text = layer as? CATextLayer { found.append(text) }
-        for sub in layer.sublayers ?? [] { found += textLayers(in: sub) }
+    /// Renders a page exactly the way `ScorePreviewView` does, so these tests track
+    /// the configuration the app ships rather than the renderer's bare defaults.
+    private static func renderPreviewPage() throws -> String {
+        let result = CeolKitParser().parse(abc, options: .default)
+        let renderer = SVGRenderer(config: SVGRenderConfig(pageSize: .letter))
+        return try #require(try renderer.render(result.score).first)
+    }
+
+    private static func drawnPaths(in layer: CALayer) -> [CGPath] {
+        var found: [CGPath] = []
+        if let shape = layer as? CAShapeLayer, let path = shape.path { found.append(path) }
+        for sub in layer.sublayers ?? [] { found += drawnPaths(in: sub) }
         return found
-    }
-
-    private static func fontFamilies(of layer: CATextLayer) -> [String] {
-        var families: [String] = []
-        if let attributed = layer.string as? NSAttributedString, attributed.length > 0 {
-            attributed.enumerateAttribute(.font, in: NSRange(location: 0, length: attributed.length)) { value, _, _ in
-                if let font = value as? NSFont, let family = font.familyName {
-                    families.append(family)
-                }
-            }
-        }
-        if families.isEmpty, let fontRef = layer.font {
-            families.append(CTFontCopyFamilyName(fontRef as! CTFont) as String)
-        }
-        return families
     }
 }

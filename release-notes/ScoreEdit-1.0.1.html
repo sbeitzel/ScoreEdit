@@ -1,0 +1,32 @@
+<div>A rendering-quality update. The music engraving engine (CeolKit) has been
+updated to 1.2.1, which fixes a number of layout and spacing problems and adds
+two directives for controlling how a tune is drawn. Editing, preview, and file
+inclusion are unchanged.</div>
+<ul>
+  <li>Engraving now follows the SMuFL 1.4 metadata's own engraving defaults
+      (stem thickness, barline weights, staff line thickness, and so on)
+      instead of approximating them, and ships the updated Bravura 1.392 music
+      font.</li>
+  <li>Text in the preview is emitted as outlines, so titles, composer lines,
+      and lyrics render identically no matter which fonts are installed.</li>
+  <li>Line breaking no longer strands a single measure on the last line and
+      stretches it across the full page width; systems are balanced when a
+      stave has to be split.</li>
+  <li>Staff lines now run through to the end of a line-ending
+      <code>||</code>, and bar lines shared between measures are no longer
+      drawn twice.</li>
+  <li>Accidentals are positioned from the actual width of the glyph being
+      drawn, correcting spacing that was noticeably off for some
+      accidental/notehead pairs.</li>
+  <li>Grace-note groups are spaced more tightly, so densely embellished
+      settings fit as intended.</li>
+  <li>New <code>%%ceolkit:scale &lt;factor&gt;</code> directive scales a single
+      tune relative to the default size &mdash; for example
+      <code>%%ceolkit:scale 0.8</code> renders it at 80%, useful for fitting a
+      long tune on one page.</li>
+  <li>New <code>%%ceolkit:gracenotespacing &lt;factor&gt;</code> directive
+      controls the spacing between grace notes within a group, per tune.</li>
+  <li>Every measure now carries an accurate source range, improving the
+      accuracy of synchronized scrolling between the editor and the
+      preview.</li>
+</ul>
