@@ -15,8 +15,11 @@ struct ABCEditorView: NSViewRepresentable {
     var onOpenInclude: (IncludeDirective) -> Void = { _ in }
 
     func makeNSView(context: Context) -> NSScrollView {
-        let textView = NSTextView()
+        let textView = ABCTextView()
         textView.delegate = context.coordinator
+        textView.onOpenInclude = { [weak coordinator = context.coordinator] directive in
+            coordinator?.parent.onOpenInclude(directive)
+        }
         textView.isEditable = true
         textView.isSelectable = true
         textView.isRichText = false
@@ -76,6 +79,7 @@ struct ABCEditorView: NSViewRepresentable {
                 uniquingKeysWith: { first, _ in first }
             )
         }
+        (textView as? ABCTextView)?.includeDirectives = includeDirectives
         if scrollProportion != context.coordinator.lastScrollProportion {
             context.coordinator.scroll(to: scrollProportion, scrollView: scrollView, textView: textView)
         }
@@ -107,6 +111,28 @@ struct ABCEditorView: NSViewRepresentable {
             guard let textView = notification.object as? NSTextView else { return }
             parent.text = textView.string
             ruler?.invalidateLineIndex()
+        }
+
+        func textView(_ view: NSTextView, menu: NSMenu, for event: NSEvent, at charIndex: Int) -> NSMenu? {
+            guard let abcTextView = view as? ABCTextView,
+                  let directive = abcTextView.directive(atCharacterIndex: charIndex) else {
+                return menu
+            }
+            let item = NSMenuItem(
+                title: String(localized: .kmenuOpenInclude(name: directive.fileName)),
+                action: #selector(openIncludeMenuItem(_:)),
+                keyEquivalent: ""
+            )
+            item.target = self
+            item.representedObject = directive
+            menu.insertItem(item, at: 0)
+            menu.insertItem(.separator(), at: 1)
+            return menu
+        }
+
+        @objc private func openIncludeMenuItem(_ sender: NSMenuItem) {
+            guard let directive = sender.representedObject as? IncludeDirective else { return }
+            parent.onOpenInclude(directive)
         }
 
         @objc func boundsDidChange(_ notification: Notification) {

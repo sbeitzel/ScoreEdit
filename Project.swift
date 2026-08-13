@@ -109,6 +109,13 @@ let project = Project(
                         "CFBundleTypeMIMETypes": ["text/vnd.abc"],
                     ],
                     [
+                        "CFBundleTypeName": "ABC Include File",
+                        "CFBundleTypeRole": "Editor",
+                        "LSHandlerRank": "Owner",
+                        "LSItemContentTypes": ["com.qbcps.abc-include"],
+                        "CFBundleTypeExtensions": ["abh"],
+                    ],
+                    [
                         "CFBundleTypeName": "Plain Text",
                         "CFBundleTypeRole": "Editor",
                         "LSHandlerRank": "Alternate",
@@ -125,7 +132,15 @@ let project = Project(
                             "public.filename-extension": ["abc"],
                             "public.mime-type": ["text/vnd.abc"],
                         ],
-                    ]
+                    ],
+                    [
+                        "UTTypeIdentifier": "com.qbcps.abc-include",
+                        "UTTypeDescription": "ABC Include File",
+                        "UTTypeConformsTo": ["public.plain-text"],
+                        "UTTypeTagSpecification": [
+                            "public.filename-extension": ["abh"],
+                        ],
+                    ],
                 ],
                 "SUEnableInstallerLauncherService": "YES",
                 "SUFeedURL": "https://www.coprosperitysphere.com/dist/ScoreEdit/appcast.xml",
