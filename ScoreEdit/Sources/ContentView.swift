@@ -25,6 +25,7 @@ public struct ContentView: View {
     @State private var includeDirectives: [IncludeDirective] = []
     @State private var includeOpenFailure: String?
     @State private var renderTrigger = 0
+    @State private var includeWatcher = IncludeFileWatcher()
 
     public var body: some View {
         HSplitView {
@@ -73,10 +74,18 @@ public struct ContentView: View {
         }
         .frame(minWidth: 600, minHeight: 400)
         .onAppear {
+            includeWatcher.onChange = { renderTrigger += 1 }
             includeDirectives = IncludeDirectiveScanner.scan(document.text)
+            refreshIncludeWatches()
         }
         .onChange(of: document.text) { _, newText in
             includeDirectives = IncludeDirectiveScanner.scan(newText)
+        }
+        .onChange(of: includeDirectives) { _, _ in
+            refreshIncludeWatches()
+        }
+        .onDisappear {
+            includeWatcher.cancelAll()
         }
         .alert(
             Text(.kerrOpenInclude(name: includeOpenFailure ?? "")),
@@ -87,6 +96,19 @@ public struct ContentView: View {
         ) {
             Button(role: .cancel, action: {}) { Text(.kbuttonOk) }
         }
+    }
+
+    /// Watches every include this document can currently read, so saving one in
+    /// its own window re-renders the preview here (#21). Establishing the
+    /// persistent security scope also keeps the watcher's descriptor valid.
+    private func refreshIncludeWatches() {
+        let urls = includeDirectives
+            .compactMap { IncludeDirectiveScanner.resolvedURL(for: $0, baseDir: directory) }
+            .filter { url in
+                includeAccess.beginPersistentAccess(to: url) != nil
+                    || FileManager.default.isReadableFile(atPath: url.path)
+            }
+        includeWatcher.setWatchedURLs(urls)
     }
 
     /// Opens the file referenced by an `I:abc-include` directive in its own
@@ -108,7 +130,9 @@ public struct ContentView: View {
                 logger.info("access granted; opening include '\(url.path)'")
                 await openIncludeDocument(at: url)
                 // Access just appeared; the preview may have a stale
-                // "cannot read include" diagnostic.
+                // "cannot read include" diagnostic, and the file is now
+                // watchable.
+                refreshIncludeWatches()
                 renderTrigger += 1
             } else {
                 logger.info("access not granted for '\(url.path)'")
