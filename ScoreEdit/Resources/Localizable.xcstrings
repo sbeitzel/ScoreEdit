@@ -1,54 +1,102 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "KBUTTON_CHECK_UPDATES" : {
-      "comment" : "Menu command to check for available updates",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Check for updates…"
+  "sourceLanguage": "en",
+  "strings": {
+    "KBUTTON_CHECK_UPDATES": {
+      "comment": "Menu command to check for available updates",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for updates…"
           }
         }
       }
     },
-    "KBUTTON_GRANT_ACCESS" : {
-      "comment" : "Button to open a dialog to grant access to a file",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grant Access…"
+    "KBUTTON_GRANT_ACCESS": {
+      "comment": "Button to open a dialog to grant access to a file",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grant Access…"
           }
         }
       }
     },
-    "KERR_FILE_ACCESS%(name)@" : {
-      "comment" : "Error message indicating the app cannot access the specified file",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cannot access “%1$(name)@”"
+    "KBUTTON_OPEN_INCLUDE_AX_DESCRIPTION": {
+      "comment": "Accessibility description of the gutter marker that opens an included file",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open included file"
           }
         }
       }
     },
-    "KLABEL_SCORE_PREVIEW" : {
-      "comment" : "Text displayed when there is no score preview for the preview panel.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Score preview"
+    "KERR_FILE_ACCESS%(name)@": {
+      "comment": "Error message indicating the app cannot access the specified file",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot access “%1$(name)@”"
+          }
+        }
+      }
+    },
+    "KLABEL_SCORE_PREVIEW": {
+      "comment": "Text displayed when there is no score preview for the preview panel.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Score preview"
+          }
+        }
+      }
+    },
+    "KSEVERITY_ERROR": {
+      "comment": "Severity label prefixing an error diagnostic in the gutter tooltip",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "error"
+          }
+        }
+      }
+    },
+    "KSEVERITY_INFO": {
+      "comment": "Severity label prefixing an informational diagnostic in the gutter tooltip",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "info"
+          }
+        }
+      }
+    },
+    "KSEVERITY_WARNING": {
+      "comment": "Severity label prefixing a warning diagnostic in the gutter tooltip",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "warning"
           }
         }
       }
     }
   },
-  "version" : "1.2"
+  "version": "1.2"
 }
