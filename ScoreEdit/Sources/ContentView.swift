@@ -37,7 +37,9 @@ public struct ContentView: View {
                     )
                 },
                 contentHeight: $editorContentHeight,
-                visibleHeight: $editorVisibleHeight
+                visibleHeight: $editorVisibleHeight,
+                diagnostics: diagnostics,
+                includeDirectives: includeDirectives
             )
             .frame(minWidth: 200)
             ScorePreviewView(
