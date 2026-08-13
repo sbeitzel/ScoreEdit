@@ -123,6 +123,7 @@ let project = Project(
                         "CFBundleTypeExtensions": ["txt"],
                     ],
                 ],
+                "LSApplicationCategoryType": "public.app-category.music",
                 "UTExportedTypeDeclarations": [
                     [
                         "UTTypeIdentifier": "com.qbcps.abc-notation",
