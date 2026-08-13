@@ -21,7 +21,7 @@ import PackageDescription
 let package = Package(
     name: "ScoreEdit",
     dependencies: [
-        .package(url: "https://github.com/SVGKit/SVGKit", branch: "3.x"),
+        .package(url: "https://github.com/SVGKit/SVGKit", branch: "3.x"), // for rendering previews
         .package(url: "https://github.com/sbeitzel/CeolKit", from: "1.2.1"), // use for releases
 //        .package(path: "../../CeolKit"), // local development
         // TODO: evaluate this for truth, as some time has passed since I started this project
