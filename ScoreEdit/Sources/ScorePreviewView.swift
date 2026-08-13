@@ -9,6 +9,10 @@ struct ScorePreviewView: View {
     let baseDir: URL?
     let includeAccess: IncludeFileAccessResolver
     @Binding var scrollAnchors: [(abcLine: Int, svgY: Double)]
+    @Binding var diagnostics: [EditorDiagnostic]
+    /// Bump to force a re-render when something other than the text changes
+    /// (e.g. an included file was saved — see #21).
+    var renderTrigger: Int = 0
     var scrollProportion: Double
     var onScrollProportionChanged: (Double) -> Void
     @Binding var contentHeight: Double
@@ -56,6 +60,9 @@ struct ScorePreviewView: View {
             logger.trace("[ScorePreview] onChange — new text length: \(new.count)")
             scheduleRender()
         }
+        .onChange(of: renderTrigger) { _, _ in
+            scheduleRender()
+        }
     }
 
     private var includeAccessBanner: some View {
@@ -89,7 +96,7 @@ struct ScorePreviewView: View {
             }
             let text = abcText
             logger.trace("launching renderABC, text length: \(text.count)")
-            let (pages, err) = await Task.detached(priority: .userInitiated) {
+            let (pages, rawDiagnostics, err) = await Task.detached(priority: .userInitiated) {
                 renderABC(text, baseDir: workingDirectory, fileResolver: resolver.resolve)
             }.value
             guard !Task.isCancelled else {
@@ -101,6 +108,11 @@ struct ScorePreviewView: View {
             scrollAnchors = Self.scrollAnchors(forPages: pages)
             renderError = err
             pendingIncludeURLs = resolver.pendingURLs
+            diagnostics = DiagnosticMapper.editorDiagnostics(
+                from: rawDiagnostics,
+                directives: IncludeDirectiveScanner.scan(text),
+                baseDir: workingDirectory
+            )
         }
     }
 
@@ -143,17 +155,18 @@ private func renderABC(
     _ text: String,
     baseDir: URL? = nil,
     fileResolver: CeolKitParser.FileResolver? = nil
-) -> (pages: [String], error: String?) {
+) -> (pages: [String], diagnostics: [Diagnostic], error: String?) {
     let log: Logger = Logger(label: "renderABC")
-    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !trimmed.isEmpty else {
+    guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
         log.info("empty input, skipping")
-        return ([], nil)
+        return ([], [], nil)
     }
 
-    log.trace("parsing \(trimmed.count) chars")
+    log.trace("parsing \(text.count) chars")
+    // Parse the untrimmed text: trimming leading blank lines would offset
+    // CeolKit's line numbers (diagnostics and scroll anchors) from editor lines.
     let parser = CeolKitParser(for: baseDir, fileResolver: fileResolver)
-    let result = parser.parse(trimmed, options: .default)
+    let result = parser.parse(text, options: .default)
 
     log.trace("parse complete — tunes: \(result.score.tunes.count), diagnostics: \(result.diagnostics.count)")
     for diag in result.diagnostics {
@@ -174,10 +187,10 @@ private func renderABC(
         for (i, svg) in pages.enumerated() {
             log.trace("page[\(i)]: \(svg.count) chars, prefix: \(svg.prefix(120))")
         }
-        return (pages, nil)
+        return (pages, result.diagnostics, nil)
     } catch {
         log.warning("renderer threw: \(error)")
-        return ([], error.localizedDescription)
+        return ([], result.diagnostics, error.localizedDescription)
     }
 }
 
@@ -217,6 +230,7 @@ private func renderABC(
         baseDir: nil,
         includeAccess: IncludeFileAccessResolver(),
         scrollAnchors: .constant([]),
+        diagnostics: .constant([]),
         scrollProportion: 0,
         onScrollProportionChanged: { _ in },
         contentHeight: .constant(0),

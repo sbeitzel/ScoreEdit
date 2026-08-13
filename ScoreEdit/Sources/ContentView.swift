@@ -18,6 +18,9 @@ public struct ContentView: View {
 
     @State private var scrollAnchors: [(abcLine: Int, svgY: Double)] = []
 
+    @State private var diagnostics: [EditorDiagnostic] = []
+    @State private var includeDirectives: [IncludeDirective] = []
+
     public var body: some View {
         HSplitView {
             ABCEditorView(
@@ -42,6 +45,7 @@ public struct ContentView: View {
                 baseDir: directory,
                 includeAccess: includeAccess,
                 scrollAnchors: $scrollAnchors,
+                diagnostics: $diagnostics,
                 scrollProportion: previewScrollProportion,
                 onScrollProportionChanged: { proportion in
                     previewScrollProportion = proportion
@@ -59,6 +63,12 @@ public struct ContentView: View {
             .frame(minWidth: 200)
         }
         .frame(minWidth: 600, minHeight: 400)
+        .onAppear {
+            includeDirectives = IncludeDirectiveScanner.scan(document.text)
+        }
+        .onChange(of: document.text) { _, newText in
+            includeDirectives = IncludeDirectiveScanner.scan(newText)
+        }
     }
 }
 
