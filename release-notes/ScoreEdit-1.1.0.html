@@ -1,0 +1,30 @@
+<div>An editing update, focused on working with tunes that are split across
+included files and on seeing what the parser thinks of your notation. The
+engraving engine (CeolKit 1.2.1) is unchanged from 1.0.1.</div>
+<ul>
+  <li>The editor now has an IDE-style gutter showing line numbers and markers
+      for parse problems. Hovering a marker lists every diagnostic on that
+      line with its code and hint; a problem that came from an included
+      fragment names the file and the line inside it.</li>
+  <li>Parse diagnostics are surfaced instead of discarded &mdash; errors and
+      warnings from the render pipeline now reach the editor rather than only
+      the log.</li>
+  <li>Files pulled in by <code>I:abc-include</code> can be opened for editing
+      in their own windows: cmd-click the include line, choose Open from its
+      context menu, or click the include marker in the gutter.</li>
+  <li>The <code>.abh</code> extension is now a recognized document type, so
+      include files open as plain text instead of being refused as unreadable
+      data.</li>
+  <li>Saving an included file re-renders the parent document's preview
+      immediately, rather than leaving it stale until the parent's own text
+      changes.</li>
+  <li>Fixed a leak of security-scoped resources: access granted to included
+      files was never released, so opening and closing enough documents would
+      quietly stop include files from being readable, with nothing shown to
+      explain why.</li>
+  <li>Fixed line numbers drifting in documents that begin with blank lines.
+      Leading whitespace is no longer trimmed before parsing, which had
+      offset every reported line and mis-anchored synchronized scrolling.</li>
+  <li>The app now declares itself as a Music application, so it is
+      categorized correctly by Finder and the App Store.</li>
+</ul>
