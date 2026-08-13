@@ -86,6 +86,10 @@ public struct ContentView: View {
         }
         .onDisappear {
             includeWatcher.cancelAll()
+            // The scopes belong to this window, not the process (#23). If this
+            // turns out to be a transient disappearance, onAppear re-establishes
+            // them via refreshIncludeWatches().
+            includeAccess.endAllPersistentAccess()
         }
         .alert(
             Text(.kerrOpenInclude(name: includeOpenFailure ?? "")),
@@ -102,13 +106,22 @@ public struct ContentView: View {
     /// its own window re-renders the preview here (#21). Establishing the
     /// persistent security scope also keeps the watcher's descriptor valid.
     private func refreshIncludeWatches() {
-        let urls = includeDirectives
+        let resolved = includeDirectives
             .compactMap { IncludeDirectiveScanner.resolvedURL(for: $0, baseDir: directory) }
-            .filter { url in
-                includeAccess.beginPersistentAccess(to: url) != nil
-                    || FileManager.default.isReadableFile(atPath: url.path)
-            }
-        includeWatcher.setWatchedURLs(urls)
+
+        // Deleting an I:abc-include line drops its file from the document, so
+        // stop holding that scope rather than stranding it until the window
+        // closes (#23).
+        let wanted = Set(resolved.map { $0.standardizedFileURL.path })
+        for path in includeAccess.activeScopePaths where !wanted.contains(path) {
+            includeAccess.endPersistentAccess(to: URL(fileURLWithPath: path))
+        }
+
+        let readable = resolved.filter { url in
+            includeAccess.beginPersistentAccess(to: url) != nil
+                || FileManager.default.isReadableFile(atPath: url.path)
+        }
+        includeWatcher.setWatchedURLs(readable)
     }
 
     /// Opens the file referenced by an `I:abc-include` directive in its own

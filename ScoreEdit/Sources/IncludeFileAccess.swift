@@ -62,18 +62,69 @@ final class SecurityScopedBookmarkStore: SecurityScopedBookmarkStoring, @uncheck
     }
 }
 
+/// Resolving a security-scoped bookmark and holding its scope, behind a seam so
+/// tests can verify that every start is balanced by a stop (#23). Minting a real
+/// security-scoped bookmark needs sandbox entitlements the test process does not
+/// have, so the live behaviour is not directly testable.
+protocol SecurityScopeAccessing: Sendable {
+    /// Resolves `bookmark` and starts access to it. Returns the resolved URL and
+    /// whether the bookmark needs re-minting, or nil when it is unusable.
+    func startAccess(bookmark: Data) -> (url: URL, isStale: Bool)?
+    func refreshedBookmark(for url: URL) -> Data?
+    func stopAccess(to url: URL)
+}
+
+struct SecurityScopeAccessor: SecurityScopeAccessing {
+    func startAccess(bookmark: Data) -> (url: URL, isStale: Bool)? {
+        var isStale = false
+        guard let resolved = try? URL(
+            resolvingBookmarkData: bookmark,
+            options: [.withSecurityScope],
+            relativeTo: nil,
+            bookmarkDataIsStale: &isStale
+        ), resolved.startAccessingSecurityScopedResource() else { return nil }
+        return (resolved, isStale)
+    }
+
+    func refreshedBookmark(for url: URL) -> Data? {
+        try? url.bookmarkData(options: .withSecurityScope)
+    }
+
+    func stopAccess(to url: URL) {
+        url.stopAccessingSecurityScopedResource()
+    }
+}
+
 /// Supplies CeolKit's `fileResolver` for `I:abc-include` targets, working within
 /// App Sandbox by consulting/minting security-scoped bookmarks. Reading (`resolve`)
 /// runs off the main thread from the render pipeline; granting access (`grantAccess`)
 /// must run on the main thread because it presents `NSOpenPanel`.
 final class IncludeFileAccessResolver: @unchecked Sendable {
     private let bookmarkStore: SecurityScopedBookmarkStoring
+    private let scopeAccessor: SecurityScopeAccessing
     private let lock = NSLock()
     private var pending: Set<URL> = []
     private var activeScopes: [String: URL] = [:]
 
-    init(bookmarkStore: SecurityScopedBookmarkStoring = SecurityScopedBookmarkStore()) {
+    init(
+        bookmarkStore: SecurityScopedBookmarkStoring = SecurityScopedBookmarkStore(),
+        scopeAccessor: SecurityScopeAccessing = SecurityScopeAccessor()
+    ) {
         self.bookmarkStore = bookmarkStore
+        self.scopeAccessor = scopeAccessor
+    }
+
+    /// Every scope this resolver is currently holding, by standardized path.
+    var activeScopePaths: Set<String> {
+        lock.lock()
+        defer { lock.unlock() }
+        return Set(activeScopes.keys)
+    }
+
+    deinit {
+        // Backstop: a resolver dropped without an explicit teardown must still
+        // balance its scopes (#23).
+        endAllPersistentAccess()
     }
 
     var pendingURLs: Set<URL> {
@@ -116,10 +167,16 @@ final class IncludeFileAccessResolver: @unchecked Sendable {
         throw IncludeAccessError.notYetGranted(standardized)
     }
 
-    /// Resolves the stored bookmark for `url`, starts security-scoped access,
-    /// and keeps it active for the life of the process (idempotent per path).
-    /// Needed so programmatic document opening, saves from an include-file
-    /// window, and the include file watcher can all touch the file (#20, #21).
+    /// Resolves the stored bookmark for `url` and starts security-scoped access,
+    /// keeping it active until `endPersistentAccess(to:)` or
+    /// `endAllPersistentAccess()` (idempotent per path). Needed so programmatic
+    /// document opening, saves from an include-file window, and the include file
+    /// watcher can all touch the file (#20, #21).
+    ///
+    /// The scope belongs to the window that opened it, not to the process: the
+    /// kernel tracks a bounded number of security-scoped resources, and leaking
+    /// them makes later `startAccessingSecurityScopedResource()` calls fail (#23).
+    ///
     /// Returns the bookmark-resolved URL, or nil when no usable bookmark exists.
     @discardableResult
     func beginPersistentAccess(to url: URL) -> URL? {
@@ -132,16 +189,10 @@ final class IncludeFileAccessResolver: @unchecked Sendable {
         }
         lock.unlock()
 
-        guard let bookmark = bookmarkStore.bookmark(for: standardized) else { return nil }
-        var isStale = false
-        guard let resolved = try? URL(
-            resolvingBookmarkData: bookmark,
-            options: [.withSecurityScope],
-            relativeTo: nil,
-            bookmarkDataIsStale: &isStale
-        ), resolved.startAccessingSecurityScopedResource() else { return nil }
+        guard let bookmark = bookmarkStore.bookmark(for: standardized),
+              let started = scopeAccessor.startAccess(bookmark: bookmark) else { return nil }
 
-        if isStale, let refreshed = try? resolved.bookmarkData(options: .withSecurityScope) {
+        if started.isStale, let refreshed = scopeAccessor.refreshedBookmark(for: started.url) {
             bookmarkStore.setBookmark(refreshed, for: standardized)
         }
 
@@ -149,12 +200,39 @@ final class IncludeFileAccessResolver: @unchecked Sendable {
         // Lost a race: another thread already holds the scope; release ours.
         if let active = activeScopes[standardized.path] {
             lock.unlock()
-            resolved.stopAccessingSecurityScopedResource()
+            scopeAccessor.stopAccess(to: started.url)
             return active
         }
-        activeScopes[standardized.path] = resolved
+        activeScopes[standardized.path] = started.url
         lock.unlock()
-        return resolved
+        return started.url
+    }
+
+    /// Balances `beginPersistentAccess(to:)` for a single URL. A no-op when no
+    /// scope is held for that path, so callers need not track what they began.
+    func endPersistentAccess(to url: URL) {
+        let standardized = url.standardizedFileURL
+        lock.lock()
+        let scope = activeScopes.removeValue(forKey: standardized.path)
+        lock.unlock()
+        // Outside the lock: stopping access is a syscall, and nothing here needs
+        // the map held while it runs.
+        if let scope {
+            scopeAccessor.stopAccess(to: scope)
+        }
+    }
+
+    /// Releases every scope this resolver holds. Idempotent, so it is safe from
+    /// both `onDisappear` (which SwiftUI may call more than once, and for
+    /// reasons other than teardown) and `deinit`.
+    func endAllPersistentAccess() {
+        lock.lock()
+        let scopes = activeScopes
+        activeScopes.removeAll()
+        lock.unlock()
+        for scope in scopes.values {
+            scopeAccessor.stopAccess(to: scope)
+        }
     }
 
     @discardableResult
