@@ -70,6 +70,7 @@ final class IncludeFileAccessResolver: @unchecked Sendable {
     private let bookmarkStore: SecurityScopedBookmarkStoring
     private let lock = NSLock()
     private var pending: Set<URL> = []
+    private var activeScopes: [String: URL] = [:]
 
     init(bookmarkStore: SecurityScopedBookmarkStoring = SecurityScopedBookmarkStore()) {
         self.bookmarkStore = bookmarkStore
@@ -113,6 +114,47 @@ final class IncludeFileAccessResolver: @unchecked Sendable {
 
         markPending(standardized)
         throw IncludeAccessError.notYetGranted(standardized)
+    }
+
+    /// Resolves the stored bookmark for `url`, starts security-scoped access,
+    /// and keeps it active for the life of the process (idempotent per path).
+    /// Needed so programmatic document opening, saves from an include-file
+    /// window, and the include file watcher can all touch the file (#20, #21).
+    /// Returns the bookmark-resolved URL, or nil when no usable bookmark exists.
+    @discardableResult
+    func beginPersistentAccess(to url: URL) -> URL? {
+        let standardized = url.standardizedFileURL
+
+        lock.lock()
+        if let active = activeScopes[standardized.path] {
+            lock.unlock()
+            return active
+        }
+        lock.unlock()
+
+        guard let bookmark = bookmarkStore.bookmark(for: standardized) else { return nil }
+        var isStale = false
+        guard let resolved = try? URL(
+            resolvingBookmarkData: bookmark,
+            options: [.withSecurityScope],
+            relativeTo: nil,
+            bookmarkDataIsStale: &isStale
+        ), resolved.startAccessingSecurityScopedResource() else { return nil }
+
+        if isStale, let refreshed = try? resolved.bookmarkData(options: .withSecurityScope) {
+            bookmarkStore.setBookmark(refreshed, for: standardized)
+        }
+
+        lock.lock()
+        // Lost a race: another thread already holds the scope; release ours.
+        if let active = activeScopes[standardized.path] {
+            lock.unlock()
+            resolved.stopAccessingSecurityScopedResource()
+            return active
+        }
+        activeScopes[standardized.path] = resolved
+        lock.unlock()
+        return resolved
     }
 
     @discardableResult

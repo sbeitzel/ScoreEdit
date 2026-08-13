@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 extension UTType {
     static let abcNotation = UTType(exportedAs: "com.qbcps.abc-notation")
+    static let abcInclude = UTType(exportedAs: "com.qbcps.abc-include")
 }
 
 struct ABCDocument: FileDocument {
@@ -13,11 +14,14 @@ struct ABCDocument: FileDocument {
     }
 
     static var readableContentTypes: [UTType] {
-        var types: [UTType] = [.abcNotation, .plainText]
+        var types: [UTType] = [.abcNotation, .abcInclude, .plainText]
         // The .abc extension is also claimed by Alembic Scene (3D graphics format).
         // Accept whatever the system maps ".abc" to so files aren't grayed out in the picker.
         if let abcByExtension = UTType(filenameExtension: "abc"), !types.contains(abcByExtension) {
             types.append(abcByExtension)
+        }
+        if let abhByExtension = UTType(filenameExtension: "abh"), !types.contains(abhByExtension) {
+            types.append(abhByExtension)
         }
         return types
     }
