@@ -1,5 +1,5 @@
 {
   "//": "Single source of truth for the app version (issue #11). Unlike SECRETS.json, this file IS checked in. Bump it with scripts/bump-version.sh; it is read at 'tuist generate' time by Project.swift (marketingVersion -> CFBundleShortVersionString, buildNumber -> CFBundleVersion). buildNumber must strictly increase every release so Sparkle can detect updates.",
-  "marketingVersion": "1.1.0",
-  "buildNumber": 3
+  "marketingVersion": "1.1.1",
+  "buildNumber": 4
 }

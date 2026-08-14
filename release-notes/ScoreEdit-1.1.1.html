@@ -1,0 +1,12 @@
+<div>A small fix to how the preview asks for permission to read included files.
+Editing, engraving (CeolKit 1.2.1), and everything else are unchanged from
+1.1.0.</div>
+<ul>
+  <li>The &ldquo;grant access&rdquo; banner above the preview now goes away
+      once the <code>I:abc-include</code> line stops naming the file it was
+      asking about. Typing an include path slowly used to leave a banner
+      behind for each half-finished name the preview happened to catch
+      mid-keystroke &mdash; asking for permission to read files that were
+      never referred to, and often did not exist &mdash; and those rows stayed
+      until the window was closed.</li>
+</ul>
