@@ -1,0 +1,71 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# A new push to a PR makes the in-flight run irrelevant.
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    # The app targets macOS 26.2, so both the SDK and the machine running the
+    # test bundle have to be that new.
+    runs-on: macos-26
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select the newest installed Xcode
+        run: |
+          latest=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          echo "Using $latest"
+          sudo xcode-select -s "$latest"
+          xcodebuild -version
+
+      # Installs the Tuist version pinned in mise.toml.
+      - uses: jdx/mise-action@v2
+
+      - name: Cache resolved packages
+        uses: actions/cache@v4
+        with:
+          path: Tuist/.build
+          key: tuist-deps-${{ runner.os }}-${{ hashFiles('Tuist/Package.resolved') }}
+
+      - name: Resolve dependencies
+        run: tuist install
+
+      # The Xcode project is generated, not checked in.
+      - name: Generate the Xcode project
+        run: tuist generate --no-open
+
+      # -workspace (not `tuist xcodebuild`) so the CeolKit sub-framework
+      # dependencies resolve — see CLAUDE.md. Signing is disabled because the
+      # runner has no Developer ID; the unit test target is unhosted, so the app
+      # bundle is never launched.
+      - name: Run tests
+        run: |
+          xcodebuild test \
+            -workspace ScoreEdit.xcworkspace \
+            -scheme ScoreEdit \
+            -destination 'platform=macOS' \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY= \
+            DEVELOPMENT_TEAM=
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults
+          path: TestResults.xcresult
+          retention-days: 7
