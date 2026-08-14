@@ -88,4 +88,55 @@ struct IncludeFileAccessResolverTests {
 
         #expect(resolver.pendingURLs == [missing.standardizedFileURL])
     }
+
+    /// The partially-typed include target of an earlier keystroke must not keep
+    /// an access banner alive once the directive names something else (#25).
+    @Test func renderPassDropsPendingURLsTheNewPassNoLongerAsksFor() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let partial = dir.appendingPathComponent("comm")
+        let complete = dir.appendingPathComponent("common.abh")
+        try "K:D\n".write(to: complete, atomically: true, encoding: .utf8)
+
+        let resolver = IncludeFileAccessResolver(bookmarkStore: FakeBookmarkStore())
+
+        let firstPass = resolver.beginRenderPass()
+        _ = try? resolver.resolve(partial, in: firstPass)
+        #expect(resolver.pendingURLs == [partial.standardizedFileURL])
+
+        let secondPass = resolver.beginRenderPass()
+        _ = try resolver.resolve(complete, in: secondPass)
+
+        #expect(resolver.pendingURLs.isEmpty)
+    }
+
+    /// A superseded render can still be inside CeolKit when the next pass opens;
+    /// its late failure must not raise a banner for text that is already gone.
+    @Test func supersededRenderPassCannotMarkPendingForTheNewPass() {
+        let stale = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID()).abh")
+        let resolver = IncludeFileAccessResolver(bookmarkStore: FakeBookmarkStore())
+
+        let firstPass = resolver.beginRenderPass()
+        _ = resolver.beginRenderPass()
+        _ = try? resolver.resolve(stale, in: firstPass)
+
+        #expect(resolver.pendingURLs.isEmpty)
+    }
+
+    /// The pending set belongs to the newest pass, so a still-unreadable include
+    /// keeps its banner across re-renders.
+    @Test func pendingURLSurvivesARenderPassThatStillCannotReadIt() {
+        let missing = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID()).abh")
+        let resolver = IncludeFileAccessResolver(bookmarkStore: FakeBookmarkStore())
+
+        let firstPass = resolver.beginRenderPass()
+        _ = try? resolver.resolve(missing, in: firstPass)
+
+        let secondPass = resolver.beginRenderPass()
+        _ = try? resolver.resolve(missing, in: secondPass)
+
+        #expect(resolver.pendingURLs == [missing.standardizedFileURL])
+    }
 }

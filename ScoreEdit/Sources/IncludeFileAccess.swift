@@ -95,6 +95,13 @@ struct SecurityScopeAccessor: SecurityScopeAccessing {
     }
 }
 
+/// Identifies a single render pass, so the set of files still awaiting access is
+/// scoped to the text that pass rendered rather than accumulating across
+/// keystrokes (#25).
+struct IncludeRenderPass: Sendable, Equatable {
+    fileprivate let id: Int
+}
+
 /// Supplies CeolKit's `fileResolver` for `I:abc-include` targets, working within
 /// App Sandbox by consulting/minting security-scoped bookmarks. Reading (`resolve`)
 /// runs off the main thread from the render pipeline; granting access (`grantAccess`)
@@ -104,6 +111,7 @@ final class IncludeFileAccessResolver: @unchecked Sendable {
     private let scopeAccessor: SecurityScopeAccessing
     private let lock = NSLock()
     private var pending: Set<URL> = []
+    private var currentPass = IncludeRenderPass(id: 0)
     private var activeScopes: [String: URL] = [:]
 
     init(
@@ -133,7 +141,31 @@ final class IncludeFileAccessResolver: @unchecked Sendable {
         return pending
     }
 
+    /// Opens a new render pass, discarding what earlier passes recorded as
+    /// pending. A partially-typed include target ("comm" on the way to
+    /// "common.abc") is only pending for the pass that saw it, so the access
+    /// banner follows the document instead of accumulating a row per keystroke
+    /// (#25). Renders of superseded text keep their own token, and their
+    /// bookkeeping is ignored once a newer pass has opened.
+    func beginRenderPass() -> IncludeRenderPass {
+        lock.lock()
+        defer { lock.unlock() }
+        currentPass = IncludeRenderPass(id: currentPass.id + 1)
+        pending.removeAll()
+        return currentPass
+    }
+
+    /// Reads `url` on behalf of the newest render pass. Prefer
+    /// `resolve(_:in:)` from a render, which cannot leave stale pending state
+    /// behind when the render it belongs to is superseded.
     func resolve(_ url: URL) throws -> Data {
+        lock.lock()
+        let pass = currentPass
+        lock.unlock()
+        return try resolve(url, in: pass)
+    }
+
+    func resolve(_ url: URL, in pass: IncludeRenderPass) throws -> Data {
         let standardized = url.standardizedFileURL
 
         if let bookmark = bookmarkStore.bookmark(for: standardized) {
@@ -150,7 +182,7 @@ final class IncludeFileAccessResolver: @unchecked Sendable {
                     if isStale, let refreshed = try? resolved.bookmarkData(options: .withSecurityScope) {
                         bookmarkStore.setBookmark(refreshed, for: standardized)
                     }
-                    clearPending(standardized)
+                    clearPending(standardized, in: pass)
                     return data
                 }
             }
@@ -159,11 +191,11 @@ final class IncludeFileAccessResolver: @unchecked Sendable {
         // Already-permitted files (e.g. within a directory the user granted via
         // NSOpenPanel for the main document) can be read directly without a bookmark.
         if let data = try? Data(contentsOf: standardized) {
-            clearPending(standardized)
+            clearPending(standardized, in: pass)
             return data
         }
 
-        markPending(standardized)
+        markPending(standardized, in: pass)
         throw IncludeAccessError.notYetGranted(standardized)
     }
 
@@ -259,12 +291,23 @@ final class IncludeFileAccessResolver: @unchecked Sendable {
         return true
     }
 
-    private func markPending(_ url: URL) {
+    // A render pass that has been superseded may still be inside CeolKit when the
+    // next one opens — cancellation does not reach it — so its late reads must
+    // not touch the newer pass's pending set.
+    private func markPending(_ url: URL, in pass: IncludeRenderPass) {
         lock.lock()
-        pending.insert(url)
+        if pass == currentPass { pending.insert(url) }
         lock.unlock()
     }
 
+    private func clearPending(_ url: URL, in pass: IncludeRenderPass) {
+        lock.lock()
+        if pass == currentPass { pending.remove(url) }
+        lock.unlock()
+    }
+
+    /// Unconditional counterpart for access granted outside a render, where the
+    /// banner row must go away whichever pass put it there.
     private func clearPending(_ url: URL) {
         lock.lock()
         pending.remove(url)

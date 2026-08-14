@@ -96,8 +96,9 @@ struct ScorePreviewView: View {
             }
             let text = abcText
             logger.trace("launching renderABC, text length: \(text.count)")
+            let pass = resolver.beginRenderPass()
             let (pages, rawDiagnostics, err) = await Task.detached(priority: .userInitiated) {
-                renderABC(text, baseDir: workingDirectory, fileResolver: resolver.resolve)
+                renderABC(text, baseDir: workingDirectory, fileResolver: { try resolver.resolve($0, in: pass) })
             }.value
             guard !Task.isCancelled else {
                 logger.trace("render task cancelled after renderABC returned")
