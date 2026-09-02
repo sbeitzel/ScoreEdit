@@ -22,7 +22,7 @@ let package = Package(
     name: "ScoreEdit",
     dependencies: [
         .package(url: "https://github.com/SVGKit/SVGKit", branch: "3.x"), // for rendering previews
-        .package(url: "https://github.com/sbeitzel/CeolKit", from: "1.2.1"), // use for releases
+        .package(url: "https://github.com/sbeitzel/CeolKit", from: "1.3.0"), // use for releases
 //        .package(path: "../../CeolKit"), // local development
         // TODO: evaluate this for truth, as some time has passed since I started this project
         // Pin transitive deps to versions that predate enableUpcomingFeature,
