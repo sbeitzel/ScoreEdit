@@ -1,0 +1,56 @@
+<div>An engraving update. The music engraving engine (CeolKit) has been updated
+to 1.3.0, which teaches it to draw tunes in more than one voice &mdash; as
+aligned staves of a single system, or as two parts sharing one staff &mdash;
+and fixes a long list of layout problems around clefs, key changes, lyrics and
+tuplets. The editor, preview, and include handling are unchanged from
+1.1.1.</div>
+<ul>
+  <li>Multi-voice tunes are engraved as one system of aligned staves instead of
+      one voice after another. Voices keep the order they were declared in on
+      their <code>V:</code> lines, and a voice declared only in the header is no
+      longer silently dropped.</li>
+  <li><code>%%score</code> and <code>%%staves</code> are honoured: they select
+      which voices are drawn and in what order, group staves under braces and
+      brackets, and say which bar lines run between staves. A
+      <code>%%score</code> in the body takes effect where it appears, so the
+      number of staves can change part-way through a tune.</li>
+  <li>Braces and brackets are drawn, stretched to the staves they join, with
+      the indent they need reserved at the left margin; staves are spaced
+      according to the group they belong to.</li>
+  <li>Voice names are printed in a gutter to the left of each system, from the
+      <code>name=</code> and <code>snm=</code> settings on the
+      <code>V:</code> line.</li>
+  <li>Two voices written onto the same staff are merged onto a common onset
+      grid and drawn as two parts: stems opposed, rests offset, noteheads
+      pulled apart where both voices land on the same spot, and beams, ties and
+      slurs kept with the voice that opened them. <code>V: stem=</code> is
+      honoured, the <code>&amp;</code> voice overlay goes through the same path,
+      and a floating voice's notes are assigned to a staff note by note.</li>
+  <li>Lyrics written on a <code>w:</code> line are engraved under the notes they
+      belong to. Space had been reserved for them, but nothing was ever
+      drawn.</li>
+  <li>Key signature, unit note length, and accidental bar memory are now scoped
+      to the voice that set them &mdash; an accidental in one voice no longer
+      alters the notes of another, and each voice keeps its own
+      <code>K:</code> and <code>L:</code>.</li>
+  <li>A mid-tune <code>K:</code> now draws a key signature where the key
+      changes, and systems that begin after the change open in the new key
+      rather than the one the voice started in.</li>
+  <li>Clef fixes: a clef named on a <code>K:</code> line reaches the staff it
+      applies to, the baritone clef is anchored on the third line instead of
+      where a bass clef goes, and key signature accidentals are laid out for
+      the clef the staff actually carries rather than at treble positions on
+      every clef.</li>
+  <li>Inline <code>[L:]</code> and <code>[M:]</code> changes reach the
+      renderer, so noteheads are sized and beams grouped against the values in
+      force rather than the ones the voice opened with. A field reached through
+      a <code>\</code> line continuation now applies at the line break instead
+      of after the joined line.</li>
+  <li>Variant ending brackets are drawn over the measures they cover; they had
+      been parsed and then never engraved.</li>
+  <li>An incomplete or restarted tuplet keeps the notes it collected instead of
+      silently discarding them, and a voice with no line in a line-set no
+      longer drifts out of step with the tune's stave numbering.</li>
+  <li>Fixed a crash in the scan for file-global directives that could take down
+      the preview before anything was drawn.</li>
+</ul>
