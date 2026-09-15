@@ -54,9 +54,12 @@ BUILD_DIR="$REPO_ROOT/dist/build"
 die() { echo "error: $*" >&2; exit 1; }
 
 # --- Locate Sparkle's generate_appcast (resolved SPM artifact) -------------
-GEN="$(find "$REPO_ROOT/Tuist/.build/artifacts" \
+# -L: newer SwiftPM links artifacts/sparkle/Sparkle into ~/.cache/swifterpm.
+# `|| true`: with pipefail, an empty result would otherwise exit silently here
+# instead of reaching the diagnostic below.
+GEN="$(find -L "$REPO_ROOT/Tuist/.build/artifacts" \
         -path '*/sparkle/Sparkle/bin/generate_appcast' -type f 2>/dev/null \
-        | grep -v '/index-build/' | head -1)"
+        | grep -v '/index-build/' | head -1 || true)"
 [ -n "$GEN" ] && [ -x "$GEN" ] \
   || die "generate_appcast not found under Tuist/.build/artifacts. Run 'tuist install' first."
 
