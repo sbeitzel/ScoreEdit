@@ -24,7 +24,7 @@ let package = Package(
         .package(url: "https://github.com/SVGKit/SVGKit", branch: "3.x"), // for rendering previews
         .package(url: "https://github.com/sbeitzel/CeolKit", from: "1.5.0"), // use for releases
 //        .package(path: "../../CeolKit"), // local development
-        .package(url: "https://github.com/CocoaLumberjack/CocoaLumberjack.git", .upToNextMinor(from: "3.9.1")),
+        .package(url: "https://github.com/CocoaLumberjack/CocoaLumberjack", from: "3.9.1"),
         .package(url: "https://github.com/apple/swift-log", from: "1.14.0"),
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.0.0"),
         // Transitive dep from CeolKit's test target — must be declared so Tuist can resolve the graph.
