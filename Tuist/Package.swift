@@ -22,12 +22,9 @@ let package = Package(
     name: "ScoreEdit",
     dependencies: [
         .package(url: "https://github.com/SVGKit/SVGKit", branch: "3.x"), // for rendering previews
-        .package(url: "https://github.com/sbeitzel/CeolKit", from: "1.3.0"), // use for releases
+        .package(url: "https://github.com/sbeitzel/CeolKit", from: "1.5.0"), // use for releases
 //        .package(path: "../../CeolKit"), // local development
-        // TODO: evaluate this for truth, as some time has passed since I started this project
-        // Pin transitive deps to versions that predate enableUpcomingFeature,
-        // which Tuist cannot parse in SPM package manifests.
-        .package(url: "https://github.com/CocoaLumberjack/CocoaLumberjack.git", .upToNextMinor(from: "3.8.0")),
+        .package(url: "https://github.com/CocoaLumberjack/CocoaLumberjack.git", .upToNextMinor(from: "3.9.1")),
         .package(url: "https://github.com/apple/swift-log", from: "1.14.0"),
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.0.0"),
         // Transitive dep from CeolKit's test target — must be declared so Tuist can resolve the graph.
