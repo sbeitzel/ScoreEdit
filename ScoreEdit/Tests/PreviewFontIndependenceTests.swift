@@ -1,4 +1,3 @@
-import AppKit
 import CeolKitParser
 import CeolKitSVGRenderer
 import QuartzCore
@@ -6,9 +5,11 @@ import SVGKit
 import Testing
 @testable import ScoreEdit
 
-struct FontRegistrationTests {
+/// The preview renders with CeolKit's default `TextRendering/outlines`, so it needs no
+/// fonts registered with the process (#33). These tests guard that independence.
+struct PreviewFontIndependenceTests {
 
-    /// The ABC the preview-path tests render: a title and a footer (text) over a
+    /// The ABC these tests render: a title and a footer (text) over a
     /// bar of notes (music glyphs), so both font families are exercised.
     private static let abc = """
         %%titleformat T0
@@ -20,15 +21,6 @@ struct FontRegistrationTests {
         K:C
         CDEF|
         """
-
-    /// SVGKit resolves `font-family` through `NSFontManager`, so this is the lookup
-    /// any `TextRendering/fontFace` output would depend on. The preview no longer
-    /// takes that path (see `previewOutputCarriesNoFontDependency`), but the app
-    /// still registers at startup, so keep the registration itself honest.
-    @Test func libertinusSerifIsAvailableAfterRegistration() {
-        CeolKitFonts.register()
-        #expect(NSFontManager.shared.availableFontFamilies.contains("Libertinus Serif"))
-    }
 
     /// As of CeolKit 1.2.1 `SVGRenderConfig.textRendering` defaults to `.outlines`,
     /// which writes glyph geometry into the document instead of emitting `<text>`

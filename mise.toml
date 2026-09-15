@@ -1,5 +1,5 @@
 [tools]
-tuist = "4.202.6"
+tuist = "latest"
 
 [tasks.export_app_icon]
 description = "Export the current app icon to the local website assets directory"

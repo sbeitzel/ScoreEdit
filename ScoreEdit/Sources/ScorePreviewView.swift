@@ -196,8 +196,6 @@ private func renderABC(
 }
 
 #Preview {
-    // Previews run outside ScoreEditApp.init(), so register the fonts here too.
-    let _ = CeolKitFonts.register()
     let kalabakan = """
         %abc-2.2
         %%ceolkit:pipeformat true
