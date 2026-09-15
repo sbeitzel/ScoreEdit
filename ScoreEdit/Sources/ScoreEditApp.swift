@@ -1,4 +1,3 @@
-import CeolKitSVGRenderer
 import Logging
 import Sparkle
 import SwiftUI
@@ -14,9 +13,6 @@ struct ScoreEditApp: App {
     init() {
         // Bootstrap the logging system to go to the console
         LoggingSystem.bootstrap(StreamLogHandler.standardOutput(label:))
-        // SVGKit resolves font-family against process-registered fonts, not the
-        // SVG's embedded @font-face data, so the bundled fonts must be registered.
-        CeolKitFonts.register()
     }
 
     var body: some Scene {
