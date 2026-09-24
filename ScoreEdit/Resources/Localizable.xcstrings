@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "KBUTTON_ACTUAL_SIZE" : {
+      "comment" : "Menu command that shows the score preview at 100% zoom",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actual Size"
+          }
+        }
+      }
+    },
     "KBUTTON_CHECK_UPDATES" : {
       "comment" : "Menu command to check for available updates",
       "extractionState" : "manual",
@@ -9,6 +21,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Check for updates…"
+          }
+        }
+      }
+    },
+    "KBUTTON_FIT_WIDTH" : {
+      "comment" : "Menu command and zoom choice that scales score pages to the preview pane's width",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fit Width"
           }
         }
       }
@@ -49,6 +73,30 @@
         }
       }
     },
+    "KBUTTON_ZOOM_IN" : {
+      "comment" : "Menu command and preview button that enlarges the score preview",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoom In"
+          }
+        }
+      }
+    },
+    "KBUTTON_ZOOM_OUT" : {
+      "comment" : "Menu command and preview button that shrinks the score preview",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoom Out"
+          }
+        }
+      }
+    },
     "KERR_FILE_ACCESS%(name)@" : {
       "comment" : "Error message indicating the app cannot access the specified file",
       "extractionState" : "manual",
@@ -81,6 +129,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Score preview"
+          }
+        }
+      }
+    },
+    "KLABEL_ZOOM" : {
+      "comment" : "Accessibility label of the score preview's zoom level picker",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zoom"
           }
         }
       }

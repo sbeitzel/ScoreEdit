@@ -78,3 +78,25 @@ struct PreviewLayoutTests {
         #expect(PreviewLayout.fitScale(naturalPageSizes: [], viewportWidth: 400) == nil)
     }
 }
+
+struct SVGPageSizeTests {
+
+    @Test func readsViewBoxExtent() {
+        let svg = #"<svg viewBox="0 0 792 612" width="792pt" height="612pt">"#
+        #expect(SVGPageView.svgSize(svg).map { [$0.width, $0.height] } == [792, 612])
+    }
+
+    @Test func readsDimensionsWithPointUnits() {
+        let svg = #"<svg width="612pt" height="792pt">"#
+        #expect(SVGPageView.svgSize(svg).map { [$0.width, $0.height] } == [612, 792])
+    }
+
+    @Test func readsUnitlessDimensions() {
+        let svg = #"<svg width="612" height="792">"#
+        #expect(SVGPageView.svgSize(svg).map { [$0.width, $0.height] } == [612, 792])
+    }
+
+    @Test func missingDimensionsGiveNil() {
+        #expect(SVGPageView.svgSize("<svg>") == nil)
+    }
+}

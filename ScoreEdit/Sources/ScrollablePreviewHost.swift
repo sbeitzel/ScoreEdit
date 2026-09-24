@@ -19,6 +19,8 @@ struct ScrollablePreviewHost: NSViewRepresentable {
     @Binding var contentHeight: Double
     /// Reported in SVG user units, like `contentHeight`.
     @Binding var visibleHeight: Double
+    /// The scale fit width currently resolves to (#38).
+    @Binding var fitScale: Double?
 
     func makeNSView(context: Context) -> NSScrollView {
         let naturalSizes = PreviewLayout.naturalPageSizes(of: pages)
@@ -116,7 +118,9 @@ struct ScrollablePreviewHost: NSViewRepresentable {
         }
 
         /// Recomputes the page and document sizes for the current viewport
-        /// width and scale, keeping the same part of the score in view.
+        /// width and scale, keeping the same point of the score centered in
+        /// the viewport. May run during a SwiftUI update, so anything reported
+        /// back to SwiftUI is deferred.
         func relayout(pagesChanged: Bool = false) {
             guard let scrollView, let hostingView else { return }
             let clip = scrollView.contentView
@@ -126,17 +130,28 @@ struct ScrollablePreviewHost: NSViewRepresentable {
                 viewportWidth: clip.bounds.width
             )
             guard pagesChanged || newLayout != layout else { return }
+            let hadLayout = layout != nil && !pagesChanged
             layout = newLayout
 
-            let verticalProportion = lastScrollProportion
-            let horizontalCenter = Self.horizontalCenter(scrollView: scrollView, documentView: hostingView)
+            let center = Self.viewportCenter(scrollView: scrollView, documentView: hostingView)
+            let previousProportion = lastScrollProportion
 
+            isProgrammaticScroll = true
             hostingView.rootView = PreviewPagesView(pages: lastPages, pageSizes: newLayout.pageSizes)
             hostingView.setFrameSize(newLayout.documentSize)
+            if hadLayout {
+                scrollViewport(toCenter: center)
+            }
+            isProgrammaticScroll = false
 
-            scrollHorizontally(toCenter: horizontalCenter)
-            scroll(to: verticalProportion)
-            syncMetrics()
+            let proportion = Self.proportion(scrollView: scrollView, documentView: hostingView)
+            lastScrollProportion = proportion
+            DispatchQueue.main.async {
+                self.syncMetrics()
+                if hadLayout && proportion != previousProportion {
+                    self.parent.onScrollProportionChanged(proportion)
+                }
+            }
         }
 
         func scroll(to proportion: Double) {
@@ -156,19 +171,21 @@ struct ScrollablePreviewHost: NSViewRepresentable {
             lastScrollProportion = clamped
         }
 
-        /// Scrolls so the given fraction of the document width is centered in
-        /// the viewport (clamped to the scrollable range).
-        private func scrollHorizontally(toCenter fraction: Double) {
+        /// Scrolls so the point at the given fractions of the document's width
+        /// and height is centered in the viewport (clamped to the scrollable
+        /// range).
+        private func scrollViewport(toCenter center: CGPoint) {
             guard let scrollView, let hostingView else { return }
             let clip = scrollView.contentView
-            let maxScroll = max(hostingView.bounds.width - clip.bounds.width, 0)
-            var origin = clip.bounds.origin
-            origin.x = min(max(fraction * hostingView.bounds.width - clip.bounds.width / 2, 0), maxScroll)
-            guard origin.x != clip.bounds.origin.x else { return }
-            isProgrammaticScroll = true
+            let document = hostingView.bounds.size
+            let viewport = clip.bounds.size
+            let origin = CGPoint(
+                x: min(max(center.x * document.width - viewport.width / 2, 0), max(document.width - viewport.width, 0)),
+                y: min(max(center.y * document.height - viewport.height / 2, 0), max(document.height - viewport.height, 0))
+            )
+            guard origin != clip.bounds.origin else { return }
             clip.setBoundsOrigin(origin)
             scrollView.reflectScrolledClipView(clip)
-            isProgrammaticScroll = false
         }
 
         func resync(to proportion: Double) {
@@ -189,6 +206,13 @@ struct ScrollablePreviewHost: NSViewRepresentable {
             if parent.visibleHeight != visibleHeight {
                 parent.visibleHeight = visibleHeight
             }
+            let fitScale = PreviewLayout.fitScale(
+                naturalPageSizes: naturalSizes,
+                viewportWidth: scrollView.contentView.bounds.width
+            )
+            if parent.fitScale != fitScale {
+                parent.fitScale = fitScale
+            }
         }
 
         private static func proportion(scrollView: NSScrollView, documentView: NSView) -> Double {
@@ -197,11 +221,14 @@ struct ScrollablePreviewHost: NSViewRepresentable {
             return min(max(scrollView.contentView.bounds.origin.y / maxScroll, 0), 1)
         }
 
-        private static func horizontalCenter(scrollView: NSScrollView, documentView: NSView) -> Double {
-            let width = documentView.bounds.width
-            guard width > 0 else { return 0.5 }
+        /// The viewport's center as fractions of the document's width and height.
+        private static func viewportCenter(scrollView: NSScrollView, documentView: NSView) -> CGPoint {
+            let document = documentView.bounds.size
             let clip = scrollView.contentView.bounds
-            return (clip.origin.x + clip.width / 2) / width
+            return CGPoint(
+                x: document.width > 0 ? clip.midX / document.width : 0.5,
+                y: document.height > 0 ? clip.midY / document.height : 0
+            )
         }
 
         deinit {
@@ -218,7 +245,7 @@ struct PreviewPagesView: View {
         LazyVStack(spacing: PreviewLayout.spacing) {
             ForEach(pages.indices, id: \.self) { i in
                 let size = i < pageSizes.count ? pageSizes[i] : .zero
-                SVGPageView(svgString: pages[i])
+                SVGPageView(svgString: pages[i], size: size)
                     .frame(width: size.width, height: size.height)
                     .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 1)
             }
