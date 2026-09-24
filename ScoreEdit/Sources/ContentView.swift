@@ -18,6 +18,8 @@ public struct ContentView: View {
     @State private var previewScrollProportion: Double = 0
     @State private var previewContentHeight: Double = 0
     @State private var previewVisibleHeight: Double = 0
+    @SceneStorage("previewZoom") private var previewZoom: PreviewZoom = .fitWidth
+    @State private var previewFitScale: Double?
 
     @State private var scrollAnchors: [(abcLine: Int, svgY: Double)] = []
 
@@ -68,11 +70,14 @@ public struct ContentView: View {
                     )
                 },
                 contentHeight: $previewContentHeight,
-                visibleHeight: $previewVisibleHeight
+                visibleHeight: $previewVisibleHeight,
+                zoom: $previewZoom,
+                fitScale: $previewFitScale
             )
             .frame(minWidth: 200)
         }
         .frame(minWidth: 600, minHeight: 400)
+        .focusedSceneValue(\.previewZoom, PreviewZoomControl(zoom: $previewZoom, fitScale: previewFitScale))
         .onAppear {
             includeWatcher.onChange = { renderTrigger += 1 }
             includeDirectives = IncludeDirectiveScanner.scan(document.text)

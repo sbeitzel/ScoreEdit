@@ -25,6 +25,7 @@ struct ScoreEditApp: App {
               updaterController.updater.checkForUpdates()
             }
           }
+          PreviewZoomCommands()
         }
     }
 }

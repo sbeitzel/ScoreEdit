@@ -17,6 +17,8 @@ struct ScorePreviewView: View {
     var onScrollProportionChanged: (Double) -> Void
     @Binding var contentHeight: Double
     @Binding var visibleHeight: Double
+    @Binding var zoom: PreviewZoom
+    @Binding var fitScale: Double?
     let logger: Logger = Logger(label: "ScorePreviewView")
 
     @State private var svgPages: [String] = []
@@ -44,11 +46,17 @@ struct ScorePreviewView: View {
                 } else {
                     ScrollablePreviewHost(
                         pages: svgPages,
+                        scale: zoom.scale,
                         scrollProportion: scrollProportion,
                         onScrollProportionChanged: onScrollProportionChanged,
                         contentHeight: $contentHeight,
-                        visibleHeight: $visibleHeight
+                        visibleHeight: $visibleHeight,
+                        fitScale: $fitScale
                     )
+                    .overlay(alignment: .bottomTrailing) {
+                        PreviewZoomControlView(zoom: $zoom, fitScale: fitScale)
+                            .padding(12)
+                    }
                 }
             }
         }
@@ -233,6 +241,8 @@ private func renderABC(
         scrollProportion: 0,
         onScrollProportionChanged: { _ in },
         contentHeight: .constant(0),
-        visibleHeight: .constant(0)
+        visibleHeight: .constant(0),
+        zoom: .constant(.fitWidth),
+        fitScale: .constant(nil)
     )
 }
