@@ -12,7 +12,8 @@ enum ScrollDirection {
 /// Anchors are converted to comparable `(editorProportion, previewProportion)`
 /// points before interpolating:
 /// - The preview axis uses `svgY / previewContentHeight` directly, since
-///   `svgY` is already an absolute, document-wide pixel offset (see #1).
+///   `svgY` is already an absolute, document-wide offset (see #1). Both are
+///   in unscaled SVG units, so the ratio holds at any preview zoom (#38).
 /// - The editor axis has no such absolute pixel value to work with — an
 ///   `abcLine` is just a source line number, and there's no reliable way to
 ///   recover the editor's total line count from a content height in points
