@@ -1,13 +1,13 @@
 {
-  "originHash" : "124aab2843ec9582f3bec24ea8228bc1047d6448305d96e1965278b9b120ab3f",
+  "originHash" : "a5d4076f0aa3f2bfc93900b1a9c02794b1b7ddd3f8e56c223cb4842eb5e23634",
   "pins" : [
     {
       "identity" : "ceolkit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/sbeitzel/CeolKit",
       "state" : {
-        "revision" : "2669952311401fde5e653f0230eabc314ff89790",
-        "version" : "1.5.0"
+        "revision" : "01351da7f588a90f5f3188b1a042462b45fbb9f2",
+        "version" : "1.9.0"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-issue-reporting",
       "state" : {
-        "revision" : "71c7c9a761d1ca6ed4ccb6ced040fe1c1a39e8e7",
-        "version" : "2.1.0"
+        "revision" : "75b000cea2ca6d7527a57e1b9cc0bdf21a9abe9f",
+        "version" : "2.1.1"
       }
     },
     {
@@ -78,8 +78,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swiftlang/swift-syntax",
       "state" : {
-        "revision" : "79e4b74a295b6eb74a8b585e3a39d29e70c1dbd1",
-        "version" : "603.0.2"
+        "revision" : "050f1a346fbbac0ca2cfb15a95274f7bd1cf0ccf",
+        "version" : "604.0.0"
       }
     }
   ],
