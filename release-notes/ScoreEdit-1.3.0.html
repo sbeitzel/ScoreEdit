@@ -1,0 +1,44 @@
+<div>A preview and engraving update. The preview pane can now be zoomed and
+scrolled sideways, and the music engraving engine (CeolKit) has been updated
+from 1.5.0 to 1.9.0, which draws chord symbols and annotations and fixes how
+stylesheet directives in a tune header are scoped.</div>
+<ul>
+  <li>The preview pane has a zoom control: zoom out, a level picker, and zoom
+      in. The View menu has Zoom In (&#8984;+), Zoom Out (&#8984;&minus;),
+      Actual Size (&#8984;0) and Fit Width. Zoom runs from 50% to 400%, is set
+      per window, and is kept when a window is restored. The same point of
+      the score stays centered when the zoom changes.</li>
+  <li>The preview now scrolls horizontally when the pages are wider than the
+      pane. Before, anything past the right edge could not be reached.</li>
+  <li>Chord symbols (<code>"Am7"</code>) and annotations
+      (<code>"^text"</code>, <code>"_text"</code>, <code>"&lt;text"</code>,
+      <code>"&gt;text"</code>, <code>"@x,y text"</code>) are now drawn. Before,
+      they were read but not printed.</li>
+  <li>Quoted text that is not a chord, such as <code>"Fine"</code> or
+      <code>"D.C. al Fine"</code>, is printed on the chord line as written,
+      with a warning suggesting <code>"^&hellip;"</code>. Quoted text written
+      before a grace group, as in <code>"^text"{g}A</code>, goes to the main
+      note and is no longer lost.</li>
+  <li>A variant ending that starts part way through a bar has its bracket
+      start at its first note instead of at the bar line.</li>
+  <li>Stylesheet directives in a tune header now apply to that tune only.
+      Before, <code>%%ceolkit:scale</code>,
+      <code>%%ceolkit:gracenotespacing</code>, <code>%%pipeformat</code>,
+      <code>%%ceolkit:justifylast</code>, <code>%%straightflags</code> and
+      <code>%%graceslurs</code> carried on into later tunes, or were ignored
+      after the first tune. A document that relied on this needs the
+      directive moved to the file header.</li>
+  <li><code>%%footer</code> in a tune header applies to that tune. A page
+      prints the footer of the tune whose music starts it. Before, the last
+      footer in the file was printed on every page.</li>
+  <li>A <code>%%score</code> or <code>%%staves</code> in the file header now
+      applies to every tune, not only the first.</li>
+  <li><code>%%landscape</code> can change the page orientation part way
+      through a document when it is written together with a
+      <code>%%newpage</code>. Without one it is ignored, with a
+      warning.</li>
+  <li>New <code>%%ceolkit:label "text"</code> directive supplies the text of a
+      <code>${label}</code> mark in a <code>%%footer</code>, such as the name
+      of a section. In the file header it covers the document; in a tune
+      header it covers that tune.</li>
+</ul>
