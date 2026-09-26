@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "KAPP_NAME" : {
+      "comment" : "The display name of the application",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ScoreEdit"
+          }
+        }
+      }
+    },
     "KBUTTON_ACTUAL_SIZE" : {
       "comment" : "Menu command that shows the score preview at 100% zoom",
       "extractionState" : "manual",
@@ -13,6 +25,17 @@
         }
       }
     },
+    "KBUTTON_APP_WEBSITE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Application Website"
+          }
+        }
+      }
+    },
     "KBUTTON_CHECK_UPDATES" : {
       "comment" : "Menu command to check for available updates",
       "extractionState" : "manual",
@@ -21,6 +44,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Check for updates…"
+          }
+        }
+      }
+    },
+    "KBUTTON_CREDITS" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Credits"
           }
         }
       }
@@ -97,6 +131,17 @@
         }
       }
     },
+    "KCOPYRIGHT%(year)@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "© %1$(year)@ The QBCPS Trust"
+          }
+        }
+      }
+    },
     "KERR_FILE_ACCESS%(name)@" : {
       "comment" : "Error message indicating the app cannot access the specified file",
       "extractionState" : "manual",
@@ -105,6 +150,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cannot access “%1$(name)@”"
+          }
+        }
+      }
+    },
+    "KERR_LICENSES_UNAVAILABLE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The license information file could not be found in the application bundle."
           }
         }
       }
@@ -141,6 +197,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zoom"
+          }
+        }
+      }
+    },
+    "KMENU_ABOUT" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About ScoreEdit"
           }
         }
       }
@@ -189,6 +256,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "warning"
+          }
+        }
+      }
+    },
+    "KTAB_LICENCES" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Licenses"
+          }
+        }
+      }
+    },
+    "KVERSION%(version)@%(build)@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %1$(version)@ (%2$(build)@)"
+          }
+        }
+      }
+    },
+    "KWINDOW_ABOUT" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About ScoreEdit"
+          }
+        }
+      }
+    },
+    "KWINDOW_CREDITS" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acknowledgments"
           }
         }
       }
