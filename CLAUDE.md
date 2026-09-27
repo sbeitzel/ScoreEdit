@@ -31,6 +31,12 @@ tuist clean manifests && tuist generate
 
 `Project.swift` reads `VERSION.json` while the manifest is evaluated, but Tuist keys its manifest cache on the manifest sources only. Without the clean, the bump is silently ignored and the previous version is generated again. `scripts/build-release.sh` handles this and verifies the exported app's version afterwards.
 
+After changing dependencies (`Tuist/Package.swift` / `Package.resolved`), regenerate the bundled third-party license credits:
+
+```bash
+mise run get_licenses   # writes ScoreEdit/Resources/LICENSES.md
+```
+
 ## Build & Test
 
 Build from the command line (after generating):

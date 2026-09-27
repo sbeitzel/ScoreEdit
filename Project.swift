@@ -161,6 +161,7 @@ let project = Project(
                 .external(name: "Sparkle"),
                 .external(name: "SVGKit"),
                 .external(name: "SVGKitSwift"),
+                .external(name: "Textual"),
             ],
             settings: .settings(base: appSettings)
         ),
