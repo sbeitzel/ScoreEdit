@@ -35,10 +35,19 @@ struct ScoreEditApp: App {
                     updaterController.updater.checkForUpdates()
                 }
             }
+
             PreviewZoomCommands()
+
+            CommandGroup(after: .help) {
+                Button {
+                    openWindow(id: .kWID_abc)
+                } label: {
+                    Text(.kbuttonAbcStandard)
+                }
+            }
         }
 
-        Window(.kwindowAbout, id: .kWID_about) {
+        Window(String(localized: .kwindowAbout), id: .kWID_about) {
             AboutView()
                 .containerBackground(.regularMaterial, for: .window)
                 .toolbar(removing: .title)
@@ -49,8 +58,15 @@ struct ScoreEditApp: App {
         .windowResizability(.contentSize)
         .restorationBehavior(.disabled)
 
-        Window(.kwindowCredits, id: .kWID_credits) {
+        Window(String(localized: .kwindowCredits), id: .kWID_credits) {
             CreditsView()
+                .windowMinimizeBehavior(.disabled)
+        }
+        .windowResizability(.automatic)
+        .restorationBehavior(.disabled)
+
+        Window(String(localized: .kwindowAbc), id: .kWID_abc) {
+            ABCStandardView()
                 .windowMinimizeBehavior(.disabled)
         }
         .windowResizability(.automatic)

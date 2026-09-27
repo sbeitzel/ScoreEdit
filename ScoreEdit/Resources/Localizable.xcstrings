@@ -13,6 +13,17 @@
         }
       }
     },
+    "KBUTTON_ABC_STANDARD" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ABC Standard v2.2"
+          }
+        }
+      }
+    },
     "KBUTTON_ACTUAL_SIZE" : {
       "comment" : "Menu command that shows the score preview at 100% zoom",
       "extractionState" : "manual",
@@ -142,6 +153,17 @@
         }
       }
     },
+    "KERR_ABC_STANDARD_UNAVAILABLE" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The ABC standard could not be found in the application bundle."
+          }
+        }
+      }
+    },
     "KERR_FILE_ACCESS%(name)@" : {
       "comment" : "Error message indicating the app cannot access the specified file",
       "extractionState" : "manual",
@@ -260,6 +282,17 @@
         }
       }
     },
+    "KTAB_ABC_STANDARD" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ABC Standard"
+          }
+        }
+      }
+    },
     "KTAB_LICENCES" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -278,6 +311,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Version %1$(version)@ (%2$(build)@)"
+          }
+        }
+      }
+    },
+    "KWINDOW_ABC" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ABC Standard v2.2"
           }
         }
       }

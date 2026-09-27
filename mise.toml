@@ -28,3 +28,7 @@ run = "scripts/make-appcast.sh"
 [tasks.get_licenses]
 description = "Regenerate ScoreEdit/Resources/LICENSES.md from the pinned dependencies' GitHub licenses"
 run = "python3 scripts/generate-licenses.py"
+
+[tasks.get_abc_standard]
+description = "Regenerate ScoreEdit/Resources/ABCStandard.html from a saved copy of the abcnotation.com ABC 2.2 standard"
+run = "python3 scripts/generate-abc-standard.py"
