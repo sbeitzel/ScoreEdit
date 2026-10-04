@@ -160,6 +160,12 @@ private struct PageAnchor: Decodable {
     let y: Double
 }
 
+/// How the preview renders.  `systemFonts` lets a font directive (`%%wordsfont Courier-Bold`)
+/// find the machine's installed faces rather than falling back to CeolKit's bundled
+/// Libertinus Serif (#47).  The text is still drawn as outlines, so the SVG carries its glyphs
+/// and needs no fonts to display (#33).
+let previewRenderConfig = SVGRenderConfig(pageSize: .letter, systemFonts: true)
+
 private func renderABC(
     _ text: String,
     baseDir: URL? = nil,
@@ -189,7 +195,7 @@ private func renderABC(
         }
     }
 
-    let renderer = SVGRenderer(config: SVGRenderConfig(pageSize: .letter))
+    let renderer = SVGRenderer(config: previewRenderConfig)
     do {
         let pages = try renderer.render(result.score)
         log.info("renderer produced \(pages.count) page(s)")
