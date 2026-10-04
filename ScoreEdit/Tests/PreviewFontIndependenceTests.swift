@@ -1,3 +1,4 @@
+import CeolKitModel
 import CeolKitParser
 import CeolKitSVGRenderer
 import QuartzCore
@@ -45,11 +46,32 @@ struct PreviewFontIndependenceTests {
         #expect(!Self.drawnPaths(in: layerTree).isEmpty)
     }
 
+    /// A font the document names is found among the machine's installed fonts (#47), not
+    /// replaced by the bundled serif — a monospaced `%%wordsfont` has to stay monospaced.
+    /// Courier ships with macOS.  CeolKit's `%%ceolkit:fontlist resolved` reports which face
+    /// each role resolved to, which is the one thing the outlines alone cannot say.
+    @Test func namedFontResolvesToInstalledFace() throws {
+        let abc = """
+            X:1
+            %%wordsfont Courier-Bold 16
+            %%ceolkit:fontlist resolved
+            T:Font Check
+            K:C
+            C|
+            W:Hello
+            """
+        let score = CeolKitParser().parse(abc, options: .default).score
+        var diagnostics: [Diagnostic] = []
+        _ = try SVGRenderer(config: previewRenderConfig).render(score, diagnostics: &diagnostics)
+        let words = try #require(diagnostics.first { $0.message.hasPrefix("wordsfont") })
+        #expect(words.message.contains("→ Courier-Bold"))
+    }
+
     /// Renders a page exactly the way `ScorePreviewView` does, so these tests track
     /// the configuration the app ships rather than the renderer's bare defaults.
     private static func renderPreviewPage() throws -> String {
         let result = CeolKitParser().parse(abc, options: .default)
-        let renderer = SVGRenderer(config: SVGRenderConfig(pageSize: .letter))
+        let renderer = SVGRenderer(config: previewRenderConfig)
         return try #require(try renderer.render(result.score).first)
     }
 
