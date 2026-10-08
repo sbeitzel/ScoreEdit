@@ -22,7 +22,7 @@ let package = Package(
     name: "ScoreEdit",
     dependencies: [
         .package(url: "https://github.com/SVGKit/SVGKit", branch: "3.x"), // for rendering previews
-        .package(url: "https://github.com/sbeitzel/CeolKit", from: "1.9.1"),
+        .package(url: "https://github.com/sbeitzel/CeolKit", from: "2.1.0"),
         .package(url: "https://github.com/apple/swift-log", from: "1.14.0"),
         .package(url: "https://github.com/sbeitzel/textual", branch: "feature/collapsible_block"),
         .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.0.0"),
