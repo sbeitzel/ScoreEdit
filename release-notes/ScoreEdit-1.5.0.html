@@ -1,0 +1,29 @@
+<div>The music engraving engine (CeolKit) has been updated from 1.9.1 to 2.1.0,
+which brings ScoreEdit's output much closer to abcm2ps. Because the default
+scale now matches abcm2ps, every tune engraves at a different size than
+before, and page breaks may move.</div>
+<ul>
+  <li>Font directives such as <code>%%wordsfont</code>, <code>%%titlefont</code>
+      and <code>%%setfont-1</code>&hellip;<code>4</code> now take effect, and
+      the preview can use any font installed on your Mac. A monospaced font
+      keeps lined-up columns lined up. <code>$1</code>&hellip;<code>$4</code>
+      switch fonts within a line of text.</li>
+  <li><code>%%scale</code>, <code>%%pagescale</code>, <code>%%stretchlast</code>
+      and <code>%%stretchstaff</code> work as they do in abcm2ps. With no
+      <code>%%scale</code>, music is drawn at abcm2ps's default of 0.75; write
+      <code>%%scale 1</code> in the file header to get the old size back.</li>
+  <li>Notes are placed for the clef in force, so bass, alto and other clefs
+      are correct. Clef changes part way through a tune are drawn, a
+      <code>K:</code> can name a clef without a key, and <code>octave=</code>
+      takes effect.</li>
+  <li><code>W:</code> words print below the tune, and a tune with several
+      <code>C:</code> (or other repeated header) lines keeps them all.</li>
+  <li>Chord symbols draw proper &flat; and &sharp; signs, and note spacing makes
+      room for chord symbols and annotations so they no longer overlap.</li>
+  <li>Only notes shorter than a quarter are beamed, every stem in a beam group
+      points the same way, and a note on the middle line follows the stem
+      before it.</li>
+  <li>Repeat signs that fall on a line break are split across it, the last
+      line of a page no longer prints over the footer, and the last line of a
+      tune is stretched or spaced like the line above it.</li>
+</ul>
